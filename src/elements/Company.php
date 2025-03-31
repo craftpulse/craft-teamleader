@@ -362,11 +362,15 @@ class Company extends Element
      */
     public function canView(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canView($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('viewCompanies');
+        return $user->can('teamleader-focus:view-companies');
     }
 
     /**
@@ -375,11 +379,15 @@ class Company extends Element
      */
     public function canSave(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canSave($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('saveCompanies');
+        return $user->can('teamleader-focus:save-companies');
     }
 
     /**
@@ -388,11 +396,15 @@ class Company extends Element
      */
     public function canDuplicate(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canDuplicate($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('saveCompanies');
+        return $user->can('teamleader-focus:save-companies');
     }
 
     /**
@@ -401,11 +413,15 @@ class Company extends Element
      */
     public function canDelete(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canSave($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('deleteCompanies');
+        return $user->can('teamleader-focus:delete-companies');
     }
 
     /**

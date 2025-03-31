@@ -1,10 +1,10 @@
 <?php
 
-namespace craft\teamleader\db;
+namespace craftpulse\teamleader\db;
 
 abstract class Table
 {
-    // Static Properties
+    // Public Properties
     // =========================================================================
-    const static COMPANY = "{{%teamleader_focus_company}}";
+    public const COMPANY = "{{%teamleader_focus_company}}";
 }

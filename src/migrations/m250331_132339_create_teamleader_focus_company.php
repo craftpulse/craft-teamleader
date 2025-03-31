@@ -4,7 +4,7 @@ namespace craftpulse\teamleader\migrations;
 
 use Craft;
 use craft\db\Migration;
-use craft\teamleader\db\Table;
+use craftpulse\teamleader\db\Table;
 
 /**
  * m250331_132339_create_teamleader_focus_company migration.
@@ -64,24 +64,4 @@ class m250331_132339_create_teamleader_focus_company extends Migration
 
         return true;
     }
-
-    // Private Methods
-    // =========================================================================
-    /**
-     * Drops a foreign key if it exists.
-     */
-    private function dropForeignKeyIfExists(string $table, string $column)
-    {
-        $tableSchema = Craft::$app->db->schema->getTableSchema($table);
-
-        if ($tableSchema !== null) {
-            foreach ($tableSchema->foreignKeys as $fkName => $fk) {
-                if (isset($fk[$column])) {
-                    $this->dropForeignKey($fkName, $table);
-                    break;
-                }
-            }
-        }
-    }
-
 }
