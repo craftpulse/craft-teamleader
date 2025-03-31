@@ -11,19 +11,19 @@
 namespace craftpulse\teamleader;
 
 use Craft;
-use craft\base\Plugin;
-use craft\elements\User;
-use craft\services\Plugins;
-use craft\services\UserPermissions;
-
-use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
-
-use verbb\formie\events\RegisterIntegrationsEvent;
-use verbb\formie\services\Integrations;
-
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
+use craft\base\Plugin;
+use craft\elements\User;
+use craft\events\RegisterComponentTypesEvent;
+use craft\services\Elements;
+use craft\services\Plugins;
+use craft\services\UserPermissions;
+use craftpulse\teamleader\elements\Company;
+use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
+use verbb\formie\events\RegisterIntegrationsEvent;
+use verbb\formie\services\Integrations;
 use yii\base\Event;
 use yii\log\Dispatcher;
 use yii\log\Logger;
@@ -103,6 +103,22 @@ class Teamleader extends Plugin {
         if(class_exists(Integrations::class)) {
             $this->_registerFormieEventHandlers();
         }
+
+        // Register custom elements
+        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function (RegisterComponentTypesEvent $event) {
+            $event->types[] = Company::class;
+        });
+
+        // Run all the migrations after install
+        Event::on(
+            Plugins::class,
+            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
+            function (PluginEvent $event) {
+                if ($event->plugin === $this) {
+                    Craft::$app->runAction('migrate/up', ['pluginHandle' => self::$plugin->handle]);
+                }
+            }
+        );
     }
 
     /**
