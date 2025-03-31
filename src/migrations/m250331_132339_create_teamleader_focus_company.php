@@ -31,7 +31,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
                 'telephones' => $this->json(),
                 'uid' => $this->uid(),
                 'vat_number' => $this->string(),
-                'website' => $this->json(),
+                'website' => $this->string(),
             ]);
         }
 
