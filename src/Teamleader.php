@@ -12,12 +12,21 @@ namespace craftpulse\teamleader;
 
 use Craft;
 use craft\base\Plugin;
+use craft\elements\User;
+use craft\services\Plugins;
+use craft\services\UserPermissions;
 
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
+
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
+use Throwable;
 use yii\base\Event;
+use yii\log\Dispatcher;
+use yii\log\Logger;
 
 /**
  * Class Teamleader
@@ -30,6 +39,23 @@ use yii\base\Event;
 class Teamleader extends Plugin {
     // Traits
     // =========================================================================
+
+    // Constant Properties
+    // =========================================================================
+    /**
+     * Lite
+     */
+    public const EDITION_LITE = 'lite';
+
+    /**
+     * Plus
+     */
+    public const EDITION_PLUS = 'plus';
+
+    /**
+     * Pro
+     */
+    public const EDITION_PRO = 'pro';
 
     // Static Properties
     // =========================================================================
@@ -50,6 +76,18 @@ class Teamleader extends Plugin {
      */
     public bool $hasCpSettings = false;
 
+    /**
+     * @inheritdoc
+     */
+    public static function editions(): array
+    {
+        return [
+            self::EDITION_LITE,
+            self::EDITION_PLUS,
+            self::EDITION_PRO,
+        ];
+    }
+
     // Public Methods
     // =========================================================================
     public function init(): void {
@@ -67,8 +105,59 @@ class Teamleader extends Plugin {
         }
     }
 
+    /**
+     * Returns true if lite version.
+     *
+     * @return bool
+     */
+    public function getIsLite(): bool
+    {
+        return $this->is(self::EDITION_LITE);
+    }
+
+    /**
+     * Returns true if plus version.
+     *
+     * @return bool
+     */
+    public function getIsPlus(): bool
+    {
+        return $this->is(self::EDITION_PLUS);
+    }
+
+    /**
+     * Returns true if pro version.
+     *
+     * @return bool
+     */
+    public function getIsPro(): bool
+    {
+        return $this->is(self::EDITION_PRO);
+    }
+
+    /**
+     * Logs a message
+     * @throws Throwable
+     */
+    public function log(string $message, array $params = [], int $type = Logger::LEVEL_INFO): void
+    {
+        /** @var User|null $user */
+        $user = Craft::$app->getUser()->getIdentity();
+
+        if ($user !== null) {
+            $params['username'] = $user->username;
+        }
+
+        $encoded_params = str_replace('\\', '', Json::encode($params));
+
+        $message = Craft::t('teamleader-focus', $message . ' ' . $encoded_params, $params);
+
+        Craft::getLogger()->log($message, $type, 'teamleader-focus');
+    }
+
     // Private Methods
     // =========================================================================
+
     private function _registerFormieEventHandlers(): void {
         Event::on(
             Integrations::class,
@@ -77,5 +166,27 @@ class Teamleader extends Plugin {
                 $event->crm[] = TeamleaderFocus::class;
             }
         );
+    }
+
+    /**
+     * Registers a custom log target
+     *
+     * @see LineFormatter::SIMPLE_FORMAT
+     */
+    private function registerLogTarget(): void
+    {
+        if (Craft::getLogger()->dispatcher instanceof Dispatcher) {
+            Craft::getLogger()->dispatcher->targets[] = new MonologTarget([
+                'name' => 'password-policy',
+                'categories' => ['password-policy'],
+                'level' => LogLevel::INFO,
+                'logContext' => false,
+                'allowLineBreaks' => true,
+                'formatter' => new LineFormatter(
+                    format: "%datetime% [%channel%.%level_name%] %message% %context%\n",
+                    dateFormat: 'Y-m-d H:i:s',
+                ),
+            ]);
+        }
     }
 }
