@@ -49,10 +49,11 @@ use yii\log\Logger;
  * @since       5.0.0
  *
  * @property SettingsModel|null $settings
- * @method Settings getSettings()
+ * @method SettingsModel getSettings()
  *
  */
 class Teamleader extends Plugin {
+
     // Traits
     // =========================================================================
     use ServicesTrait;
@@ -62,17 +63,17 @@ class Teamleader extends Plugin {
     /**
      * Lite
      */
-    public const EDITION_LITE = 'lite';
+    public const string EDITION_LITE = 'lite';
 
     /**
      * Plus
      */
-    public const EDITION_PLUS = 'plus';
+    public const string EDITION_PLUS = 'plus';
 
     /**
      * Pro
      */
-    public const EDITION_PRO = 'pro';
+    public const string EDITION_PRO = 'pro';
 
     // Static Properties
     // =========================================================================
@@ -144,14 +145,17 @@ class Teamleader extends Plugin {
         }
 
         // Register custom elements
+        // @TODO: offload this into $this->_registerElements();
         Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function (RegisterComponentTypesEvent $event) {
             $event->types[] = Company::class;
         });
 
         // Register control panel events
         if (Craft::$app->getRequest()->getIsCpRequest()) {
-            $this->_registerCpUrlRules();
-            $this->_registerFieldLayout();
+            if ($this->getIsPlus() || $this->getIsPro()) {
+                $this->_registerCpUrlRules();
+                $this->_registerFieldLayout();
+            }
         }
 
         // Run all the migrations after install
@@ -186,8 +190,6 @@ class Teamleader extends Plugin {
      */
     public function getCpNavItem(): ?array
     {
-        if (self::editions() == self::EDITION_LITE) return null;
-
         $subNavs = [];
         $navItem = parent::getCpNavItem();
         $currentUser = Craft::$app->getUser()->getIdentity();
