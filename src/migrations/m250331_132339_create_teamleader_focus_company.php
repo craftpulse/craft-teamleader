@@ -4,47 +4,38 @@ namespace craftpulse\teamleader\migrations;
 
 use Craft;
 use craft\db\Migration;
-use craft\teamleader\db\Table;
+use craftpulse\teamleader\db\Table;
+use craftpulse\teamleader\records\CompanyRecord;
 
 /**
  * m250331_132339_create_teamleader_focus_company migration.
  */
 class m250331_132339_create_teamleader_focus_company extends Migration
 {
+    // Public Properties
+    // =========================================================================
+
+    /**
+     * @var ?string The database driver to use
+     */
+    public ?string $driver = null;
+
     // Public Methods
     // =========================================================================
+
     /**
      * @inheritdoc
+     * @throws Exception
      */
     public function safeUp(): bool
     {
-        // Create the Company table:
-        if (!$this->db->tableExists(Table::COMPANY)) {
-            $this->createTable(Table::COMPANY, [
-                'dateCreated' => $this->dateTime()->notNull(),
-                'dateUpdated' => $this->dateTime()->notNull(),
-                'emails' => $this->json(),
-                'id' => $this->primaryKey(),
-                'marketing_mails_consent' => $this->boolean(),
-                'name' => $this->string()->notNull(),
-                'national_identification_number' => $this->string(),
-                'telephones' => $this->json(),
-                'uid' => $this->uid(),
-                'vat_number' => $this->string(),
-                'website' => $this->json(),
-            ]);
-        }
+        $this->driver = Craft::$app->getConfig()->getDb()->driver;
+        if ($this->createTables()) {
+            $this->addForeignKeys();
 
-        // Give it a foreign key to the elements table:
-        $this->addForeignKey(
-            null,
-            Table::COMPANY,
-            'id',
-            '{{%elements}}',
-            'id',
-            'CASCADE',
-            null
-        );
+            // Refresh the db schema caches
+            Craft::$app->db->schema->refresh();
+        }
 
         return true;
     }
@@ -54,34 +45,81 @@ class m250331_132339_create_teamleader_focus_company extends Migration
      */
     public function safeDown(): bool
     {
-        if ($this->db->tableExists(Table::COMPANY)) {
-            // Drop the foreign key before dropping the table
-            $this->dropForeignKeyIfExists(Table::COMPANY, 'id');
+        $this->dropForeignKeys();
+        $this->dropTables();
 
-            // Drop the table
-            $this->dropTableIfExists(Table::COMPANY);
+        return true;
+    }
+
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * Creates the tables.
+     *
+     * @return bool
+     * @throws Exception
+     */
+    protected function createTables(): bool
+    {
+        if(!$this->db->tableExists(CompanyRecord::tableName())) {
+            $this->createTable(
+                Table::COMPANY,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // data
+                    'emails' => $this->json(),
+                    'marketing_mails_consent' => $this->boolean(),
+                    'name' => $this->string()->notNull(),
+                    'national_identification_number' => $this->string(),
+                    'telephones' => $this->json(),
+                    'vat_number' => $this->string(),
+                    'website' => $this->string(),
+                ]
+            );
         }
 
         return true;
     }
 
-    // Private Methods
-    // =========================================================================
     /**
-     * Drops a foreign key if it exists.
+     * @inheritdoc
      */
-    private function dropForeignKeyIfExists(string $table, string $column)
+    public function addForeignKeys(): void
     {
-        $tableSchema = Craft::$app->db->schema->getTableSchema($table);
+        $this->addForeignKey(
+            null,
+            Table::COMPANY,
+            'id',
+            '{{%elements}}',
+            'id',
+            'CASCADE',
+            null
+        );
+    }
 
-        if ($tableSchema !== null) {
-            foreach ($tableSchema->foreignKeys as $fkName => $fk) {
-                if (isset($fk[$column])) {
-                    $this->dropForeignKey($fkName, $table);
-                    break;
-                }
-            }
+    /**
+     * @inheritdoc
+     */
+    public function dropForeignKeys(): void
+    {
+        if ($this->db->tableExists(Table::COMPANY)) {
+            Db::dropAllForeignKeysToTable(Table::COMPANY);
         }
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function dropTables(): void
+    {
+        if (Craft::$app->db->schema->getTableSchema(Table::COMPANY)) {
+            $this->dropTable(Table::COMPANY);
+        }
+    }
 }

@@ -8,9 +8,11 @@ use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
 use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
+use craftpulse\teamleader\records\CompanyRecord;
 use yii\web\Response;
 
 /**
@@ -23,66 +25,136 @@ class Company extends Element
 
     // Constant Properties
     // =========================================================================
-    public string $name;
-    public
+    /**
+     * @var bool|null
+     */
+    public ?bool $marketingMailsConsent = null;
+    /**
+     * @var string|null
+     */
+    public ?string $nationalIdentificationNumber = null;
+    /**
+     * @var string|null
+     */
+    public ?string $vatNumber = null;
+    /**
+     * @var string|null
+     */
+    public ?string $website = null;
+    /**
+     * @var array
+     */
+    public array $emails = [];
+    /**
+     * @var array
+     */
+    public array $telephones = [];
+    /**
+     * @var string
+     */
+    public string $name = '';
+
+    /**
+     * @var null|FieldLayout Field layout
+     */
+    private ?FieldLayout $fieldLayout = null;
+
 
     // Public Static Methods
     // =========================================================================
+    /**
+     * @return string
+     */
     public static function displayName(): string
     {
         return Craft::t('teamleader-focus', 'Company');
     }
 
+    /**
+     * @return string
+     */
     public static function lowerDisplayName(): string
     {
         return Craft::t('teamleader-focus', 'company');
     }
 
+    /**
+     * @return string
+     */
     public static function pluralDisplayName(): string
     {
         return Craft::t('teamleader-focus', 'Companies');
     }
 
+    /**
+     * @return string
+     */
     public static function pluralLowerDisplayName(): string
     {
         return Craft::t('teamleader-focus', 'companies');
     }
 
+    /**
+     * @return string|null
+     */
     public static function refHandle(): ?string
     {
         return 'company';
     }
 
+    /**
+     * @return bool
+     */
     public static function trackChanges(): bool
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public static function hasTitles(): bool
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public static function hasUris(): bool
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public static function isLocalized(): bool
     {
         return false;
     }
 
+    /**
+     * @return bool
+     */
     public static function hasStatuses(): bool
     {
         return true;
     }
 
+    /**
+     * @return ElementQueryInterface
+     * @throws \yii\base\InvalidConfigException
+     */
     public static function find(): ElementQueryInterface
     {
         return Craft::createObject(CompanyQuery::class, [static::class]);
     }
 
+    /**
+     * @return ElementConditionInterface
+     * @throws \yii\base\InvalidConfigException
+     */
     public static function createCondition(): ElementConditionInterface
     {
         return Craft::createObject(CompanyCondition::class, [static::class]);
@@ -90,6 +162,10 @@ class Company extends Element
 
     // Protected Static Methods
     // =========================================================================
+    /**
+     * @param string $context
+     * @return array[]
+     */
     protected static function defineSources(string $context): array
     {
         return [
@@ -100,23 +176,31 @@ class Company extends Element
         ];
     }
 
+    /**
+     * @param string $source
+     * @return array
+     */
     protected static function defineActions(string $source): array
     {
         // List any bulk element actions here
         return [];
     }
 
+    /**
+     * @return bool
+     */
     protected static function includeSetStatusAction(): bool
     {
         return true;
     }
 
+    /**
+     * @return array
+     */
     protected static function defineSortOptions(): array
     {
         return [
             'title' => Craft::t('app', 'Title'),
-            'slug' => Craft::t('app', 'Slug'),
-            'uri' => Craft::t('app', 'URI'),
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
@@ -138,6 +222,9 @@ class Company extends Element
         ];
     }
 
+    /**
+     * @return array[]
+     */
     protected static function defineTableAttributes(): array
     {
         return [
@@ -150,6 +237,10 @@ class Company extends Element
         ];
     }
 
+    /**
+     * @param string $source
+     * @return string[]
+     */
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
@@ -160,6 +251,9 @@ class Company extends Element
 
     // Protected Methods
     // =========================================================================
+    /**
+     * @return array
+     */
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), [
@@ -167,6 +261,14 @@ class Company extends Element
         ]);
     }
 
+    protected function cpEditUrl(): ?string
+    {
+        return sprintf('teamleader-focus/companies/%s', $this->getCanonicalId());
+    }
+
+    /**
+     * @return array
+     */
     protected function previewTargets(): array
     {
         $previewTargets = [];
@@ -182,6 +284,9 @@ class Company extends Element
         return $previewTargets;
     }
 
+    /**
+     * @return array|string|null
+     */
     protected function route(): array|string|null
     {
         // Define how companies should be routed when their URLs are requested
@@ -194,63 +299,49 @@ class Company extends Element
         ];
     }
 
-    protected function cpEditUrl(): ?string
-    {
-        return sprintf('companies/%s', $this->getCanonicalId());
-    }
-
     // Public Methods
     // =========================================================================
-    public function getUriFormat(): ?string
+    /**
+     * @param bool $isNew
+     * @return void
+     */
+    public function afterSave(bool $isNew): void
     {
-        // If companies should have URLs, define their URI format here
-        return null;
-    }
+        if (!$this->propagating) {
+            if ($isNew) {
+                $companyRecord = new CompanyRecord();
+                $companyRecord->id = $this->id;
+            } else {
+                $companyRecord = CompanyRecord::findOne($this->id);
+            }
 
-    public function canView(User $user): bool
-    {
-        if (parent::canView($user)) {
-            return true;
+            $companyRecord->fieldLayoutId = $this->fieldLayout->id;
+            $companyRecord->name = $this->title;
+
+            $companyRecord->save(false);
         }
-        // todo: implement user permissions
-        return $user->can('viewCompanies');
+
+        parent::afterSave($isNew);
     }
 
-    public function canSave(User $user): bool
+    /**
+     * @inheritdoc
+     * @return FieldLayout|null
+     */
+    public function getFieldLayout(): ?FieldLayout
     {
-        if (parent::canSave($user)) {
-            return true;
+        if ($this->fieldLayout !== null) {
+            return $this->fieldLayout;
         }
-        // todo: implement user permissions
-        return $user->can('saveCompanies');
-    }
 
-    public function canDuplicate(User $user): bool
-    {
-        if (parent::canDuplicate($user)) {
-            return true;
-        }
-        // todo: implement user permissions
-        return $user->can('saveCompanies');
-    }
+        $this->fieldLayout = Craft::$app->getFields()->getLayoutByType(self::class);
 
-    public function canDelete(User $user): bool
-    {
-        if (parent::canSave($user)) {
-            return true;
-        }
-        // todo: implement user permissions
-        return $user->can('deleteCompanies');
-    }
-
-    public function canCreateDrafts(User $user): bool
-    {
-        return true;
+        return $this->fieldLayout;
     }
 
     public function getPostEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('companies');
+        return UrlHelper::cpUrl('teamleader-focus/companies');
     }
 
     public function prepareEditScreen(Response $response, string $containerId): void
@@ -259,17 +350,121 @@ class Company extends Element
         $response->crumbs([
             [
                 'label' => self::pluralDisplayName(),
-                'url' => UrlHelper::cpUrl('companies'),
+                'url' => UrlHelper::cpUrl('teamleader-focus/companies'),
             ],
         ]);
     }
 
-    public function afterSave(bool $isNew): void
+    /**
+     * @param bool $isNew
+     * @return bool
+     */
+    public function beforeSave(bool $isNew): bool
     {
-        if (!$this->propagating) {
-            // todo: update the `companies` table
+        $this->emails = !empty($this->emails) ? json_encode($this->emails) : [];
+        $this->telephones = !empty($this->telephones) ? json_encode($this->telephones) : [];
+
+        return parent::beforeSave($isNew);
+    }
+
+    /**
+     * @return void
+     */
+    public function afterFind(): void
+    {
+        parent::afterFind();
+
+        $this->emails = $this->emails ? json_decode($this->emails, true) : [];
+        $this->telephones = $this->telephones ? json_decode($this->telephones, true) : [];
+    }
+
+
+    /**
+     * @return array|string[]
+     */
+    public function attributes(): array
+    {
+        return array_merge(parent::attributes(), [
+            'emails',
+            'telephones',
+        ]);
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getUriFormat(): ?string
+    {
+        // If companies should have URLs, define their URI format here
+        return null;
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    public function canView(User $user): bool
+    {
+        if ($user->admin) {
+            return true; // Admins can always view
         }
 
-        parent::afterSave($isNew);
+        if (parent::canView($user)) {
+            return true;
+        }
+        // todo: implement user permissions
+        return $user->can('teamleader-focus:view-companies');
     }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    public function canSave(User $user): bool
+    {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
+        if (parent::canSave($user)) {
+            return true;
+        }
+        // todo: implement user permissions
+        return $user->can('teamleader-focus:save-companies');
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    public function canDuplicate(User $user): bool
+    {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
+        if (parent::canDuplicate($user)) {
+            return true;
+        }
+        // todo: implement user permissions
+        return $user->can('teamleader-focus:save-companies');
+    }
+
+    /**
+     * @param User $user
+     * @return bool
+     */
+    public function canDelete(User $user): bool
+    {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
+        if (parent::canSave($user)) {
+            return true;
+        }
+        // todo: implement user permissions
+        return $user->can('teamleader-focus:delete-companies');
+    }
+
 }
