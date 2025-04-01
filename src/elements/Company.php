@@ -7,17 +7,18 @@ use craft\base\Element;
 use craft\elements\Address;
 use craft\elements\db\AddressQuery;
 use craft\elements\ElementCollection;
-use craft\elements\NestedElementManager;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\enums\PropagationMethod;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
 use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
 use craftpulse\teamleader\records\CompanyRecord;
+use yii\base\ExitException;
+use yii\db\Exception;
 use yii\web\Response;
 
 /**
@@ -308,8 +309,8 @@ class Company extends Element
     // Public Methods
     // =========================================================================
     /**
-     * @param bool $isNew
-     * @return void
+     * @inheritdoc
+     * @throws Exception|ExitException
      */
     public function afterSave(bool $isNew): void
     {
@@ -327,16 +328,15 @@ class Company extends Element
             $companyRecord->save(false);
         }
 
-        Craft::dd($this->emails);
+        //Craft::dd($this->emails);
 
         parent::afterSave($isNew);
     }
 
     /**
-     * Gets the user’s addresses.
+     * Gets the addresses.
      *
      * @return ElementCollection<Address>
-     * @since 4.0.0
      */
     public function getAddresses(): ElementCollection
     {
@@ -391,8 +391,8 @@ class Company extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-        $this->emails = !empty($this->emails) ? json_encode($this->emails) : [];
-        $this->telephones = !empty($this->telephones) ? json_encode($this->telephones) : [];
+        $this->emails = !empty($this->emails) ? Json::encode($this->emails) : [];
+        $this->telephones = !empty($this->telephones) ? Json::encode($this->telephones) : [];
 
         return parent::beforeSave($isNew);
     }
@@ -402,12 +402,10 @@ class Company extends Element
      */
     public function afterFind(): void
     {
-        parent::afterFind();
-
         $this->addresses = new ElementCollection();
 
-        $this->emails = $this->emails ? json_decode($this->emails, true) : [];
-        $this->telephones = $this->telephones ? json_decode($this->telephones, true) : [];
+        $this->emails = $this->emails ?: [];
+        $this->telephones = $this->telephones ?: [];
     }
 
 

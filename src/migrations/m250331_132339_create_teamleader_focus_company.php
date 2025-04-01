@@ -4,8 +4,13 @@ namespace craftpulse\teamleader\migrations;
 
 use Craft;
 use craft\db\Migration;
+use craft\helpers\Db;
+
 use craftpulse\teamleader\db\Table;
 use craftpulse\teamleader\records\CompanyRecord;
+
+use Exception;
+use Throwable;
 
 /**
  * m250331_132339_create_teamleader_focus_company migration.
@@ -25,7 +30,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
 
     /**
      * @inheritdoc
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function safeUp(): bool
     {
@@ -58,7 +63,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
      * Creates the tables.
      *
      * @return bool
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     protected function createTables(): bool
     {
@@ -88,7 +93,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function addForeignKeys(): void
     {
@@ -104,7 +109,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function dropForeignKeys(): void
     {
@@ -114,7 +119,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function dropTables(): void
     {

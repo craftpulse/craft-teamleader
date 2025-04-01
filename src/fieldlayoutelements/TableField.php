@@ -28,7 +28,7 @@ class TableField extends BaseNativeField
     public bool $required = true;
 
     /**
-     * @inheritdoc
+     * @var string|null $name
      */
     public ?string $name = null;
 
@@ -40,7 +40,7 @@ class TableField extends BaseNativeField
     /**
      * @var array<int, array{label: string, value: string}>
      */
-    public array $defaults = [[]];
+    public array $defaults = [];
 
     // Public Methods
     // =========================================================================
@@ -79,11 +79,11 @@ class TableField extends BaseNativeField
     }
 
     /**
-     * @inheritdoc
+     * @param $value
+     * @return string|array|null
      */
     protected function encodeValue($value): string|array|null
     {
-        $encValue = parent::encodeValue($value);
-        return $encValue === null || $encValue === '' ? '__blank__' : $encValue;
+        return $value === null || $value === '' ? '__blank__' : $value;
     }
 }

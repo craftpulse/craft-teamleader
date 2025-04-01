@@ -4,12 +4,15 @@ namespace craft\teamleader\migrations;
 
 use Craft;
 use craft\db\Migration;
+use craft\db\MigrationManager;
 use craft\helpers\Db;
 
-use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\db\Table;
+use craftpulse\teamleader\elements\Company as CompanyElement;
 use craftpulse\teamleader\records\CompanyRecord;
 
+use Exception;
+use Throwable;
 use verbb\auth\Auth;
 
 class Install extends Migration
@@ -27,14 +30,16 @@ class Install extends Migration
 
     /**
      * @inheritdoc
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     public function safeUp(): bool
     {
         $this->driver = Craft::$app->getConfig()->getDb()->driver;
 
         // Making sure to Auth module creates tables
-        Auth::getInstance()->migrator->up();
+        /** @var MigrationManager $migrator */
+        $migrator = Auth::getInstance()->get('migrator');
+        $migrator->up();
 
         if ($this->createTables()) {
             $this->addForeignKeys();
@@ -54,7 +59,7 @@ class Install extends Migration
     {
         $this->dropForeignKeys();
         $this->dropTables();
-        Craft::$app->getFields()->deleteLayoutsByType(RouteElement::class);
+        Craft::$app->getFields()->deleteLayoutsByType(CompanyElement::class);
 
         return true;
     }
@@ -66,7 +71,7 @@ class Install extends Migration
      * Creates the tables.
      *
      * @return bool
-     * @throws Exception
+     * @throws Exception|Throwable
      */
     protected function createTables(): bool
     {
@@ -96,7 +101,7 @@ class Install extends Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function addForeignKeys(): void
     {
@@ -125,7 +130,7 @@ class Install extends Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function dropForeignKeys(): void
     {
@@ -135,7 +140,7 @@ class Install extends Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function dropTables(): void
     {

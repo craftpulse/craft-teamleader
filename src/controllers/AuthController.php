@@ -97,19 +97,13 @@ class AuthController extends controller
             // Fetch the access token
             $token = Auth::getInstance()->getOAuth()->callback('teamleader-focus', $provider);
 
-            if (!$token) {
-                Session::setError('teamleader-focus', Craft::t('teamleader-focus', 'Unable to fetch token.'));
-
-                return $this->redirect($origin);
-            }
-
             // Save the auth token
             $token->reference = 'teamleader-focus';
             Auth::getInstance()->getTokens()->upsertToken($token);
 
         } catch (Throwable $error) {
             // Check if there are any meaningful errors returned from providers
-            $message = implode(', ', array_filter([$e->getMessage(), $this->request->getParam('error'), $this->request->getParam('error_description')]));
+            $message = implode(', ', array_filter([$error->getMessage(), $this->request->getParam('error'), $this->request->getParam('error_description')]));
 
             $error = Craft::t('teamleader-focus', 'Unable to process callback for Teamleader Focus: “{message}” {file}:{line}',
                 [

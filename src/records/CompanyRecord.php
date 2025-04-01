@@ -20,10 +20,11 @@ use craftpulse\teamleader\db\Table;
  * @property string $uid Uid
  * @property string|null $vat_number Vat number
  * @property string|null $website Website
+ * @property int|mixed|null $fieldLayoutId
  */
 class CompanyRecord extends ActiveRecord
 {
-    public static function tableName()
+    public static function tableName(): string
     {
         return Table::COMPANY;
     }

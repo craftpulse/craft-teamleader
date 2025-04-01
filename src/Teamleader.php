@@ -18,10 +18,10 @@ use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\Json;
 use craft\log\MonologTarget;
 use craft\models\FieldLayout;
 use craft\services\Elements;
-use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 

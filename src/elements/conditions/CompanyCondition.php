@@ -10,10 +10,10 @@ use craft\elements\conditions\ElementCondition;
  */
 class CompanyCondition extends ElementCondition
 {
-    protected function selectableConditionRules(): array
+    /*protected function selectableConditionRules(): array
     {
         return array_merge(parent::conditionRuleTypes(), [
             // ...
         ]);
-    }
+    }*/
 }
