@@ -8,6 +8,7 @@ use craft\helpers\Db;
 
 use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\db\Table;
+use craftpulse\teamleader\records\CompanyRecord;
 
 use verbb\auth\Auth;
 
@@ -26,6 +27,7 @@ class Install extends Migration
 
     /**
      * @inheritdoc
+     * @throws Exception
      */
     public function safeUp(): bool
     {
@@ -52,7 +54,7 @@ class Install extends Migration
     {
         $this->dropForeignKeys();
         $this->dropTables();
-        //Craft::$app->getFields()->deleteLayoutsByType(Element::class);
+        Craft::$app->getFields()->deleteLayoutsByType(RouteElement::class);
 
         return true;
     }
@@ -64,9 +66,32 @@ class Install extends Migration
      * Creates the tables.
      *
      * @return bool
+     * @throws Exception
      */
     protected function createTables(): bool
     {
+        if(!$this->db->tableExists(CompanyRecord::tableName())) {
+            $this->createTable(
+                Table::COMPANY,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // data
+                    'emails' => $this->json(),
+                    'marketing_mails_consent' => $this->boolean(),
+                    'name' => $this->string()->notNull(),
+                    'national_identification_number' => $this->string(),
+                    'telephones' => $this->json(),
+                    'vat_number' => $this->string(),
+                    'website' => $this->string(),
+                ]
+            );
+        }
+
         return true;
     }
 
@@ -74,20 +99,48 @@ class Install extends Migration
      * @inheritdoc
      */
     public function addForeignKeys(): void
-    {}
+    {
+        $this->addForeignKey(
+            null,
+            Table::COMPANY,
+            'id',
+            '{{%elements}}',
+            'id',
+            'CASCADE',
+            null
+        );
+    }
 
     public function addFieldLayout(): void
-    {}
+    {
+//        $fieldLayout = Craft::$app->getFields()->getLayoutByType(RouteElement::class) ?? new FieldLayout();
+//
+//        $tab = new FieldLayoutTab(['name' => 'Route']);
+//        $tab->setLayout($fieldLayout);
+//
+//        $tab->setElements(Shortlink::$plugin->routes->createFields());
+//        $fieldLayout->setTabs([$tab]);
+//
+//        Craft::$app->getFields()->saveLayout($fieldLayout);
+    }
 
     /**
      * @inheritdoc
      */
     public function dropForeignKeys(): void
-    {}
+    {
+        if ($this->db->tableExists(Table::COMPANY)) {
+            Db::dropAllForeignKeysToTable(Table::COMPANY);
+        }
+    }
 
     /**
      * @inheritdoc
      */
     public function dropTables(): void
-    {}
+    {
+        if (Craft::$app->db->schema->getTableSchema(Table::COMPANY)) {
+            $this->dropTable(Table::COMPANY);
+        }
+    }
 }

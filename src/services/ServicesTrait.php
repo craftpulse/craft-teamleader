@@ -1,16 +1,24 @@
 <?php
+/**
+ * teamleader plugin for Craft CMS
+ *
+ * @link      https://craft-pulse.com
+ * @copyright Copyright (c) 2025 CraftPulse
+ */
 
-namespace craftpulse\passwordpolicy\services;
+namespace craftpulse\teamleader\services;
 
-use yii\base\InvalidConfigException;
+use craftpulse\teamleader\services\Redirects;
+use craftpulse\teamleader\services\Routes;
+use craftpulse\teamleader\services\Statistics;
 
 /**
- * Class Token
+ * @author    CraftPulse
+ * @package   teamleader
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.0.0
- *
+ * @property Redirects $redirects
+ * @property Routes $routes
+ * @property Statistics $statistics
  */
 trait ServicesTrait
 {
@@ -18,22 +26,23 @@ trait ServicesTrait
     {
         return [
             'components' => [
-                //'passwords' => PasswordService::class,
-            ],
+                'companies' => Companies::class,
+            ]
         ];
     }
 
     // Public Methods
     // =========================================================================
 
+
     /**
-     * Returns the passwords service
+     * Returns the routes service
      *
-     * The service
+     * @return Companies The routes service
      * @throws InvalidConfigException
      */
-    /*public function getPasswords(): PasswordService
+    public function getCompanies(): Companies
     {
-        return $this->get('passwords');
-    }*/
+        return $this->get('companies');
+    }
 }
