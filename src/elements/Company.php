@@ -18,6 +18,7 @@ use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
 use craftpulse\teamleader\records\CompanyRecord;
 use yii\base\ExitException;
+use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\web\Response;
 
@@ -151,7 +152,7 @@ class Company extends Element
 
     /**
      * @return ElementQueryInterface
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public static function find(): ElementQueryInterface
     {
@@ -160,7 +161,7 @@ class Company extends Element
 
     /**
      * @return ElementConditionInterface
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public static function createCondition(): ElementConditionInterface
     {
@@ -336,13 +337,13 @@ class Company extends Element
     /**
      * Gets the addresses.
      *
-     * @return ElementCollection<Address>
+     * @return ElementCollection
      */
     public function getAddresses(): ElementCollection
     {
         if (!isset($this->addresses)) {
             if (!$this->id) {
-                /** @var ElementCollection<Address> */
+                /** @var ElementCollection */
                 return ElementCollection::make();
             }
 
