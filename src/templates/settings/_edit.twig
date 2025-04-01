@@ -1,0 +1,96 @@
+{% requirePermission "shortlink:settings" %}
+
+{% extends "teamleader-focus/_layouts/teamleader-cp.twig" %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set tabs = {
+    domains: { label: 'Teamleader Focus API'|t('teamleader-focus'), url: '#api' },
+} %}
+
+{% block actionButton %}
+    <input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="teamleader-focus/settings/save">
+    <input type="hidden" name="pluginHandle" value="teamleader-focus">
+
+    <div id="api" class="flex-fields">
+        <div class="flex field">
+            <div class="flex-grow">
+                <div class="field">
+                    {{ forms.autosuggestField({
+                        label: 'Client ID.'|t('teamleader-focus'),
+                        instructions: "Enter your Teamleader Focus {label} here."|t('teamleader-focus'),
+                        name: 'settings[clientId]',
+                        suggestEnvVars: true,
+                        value: settings.clientId,
+                        required: true,
+                    }) }}
+                </div>
+
+                <div class="field">
+                    {{ forms.autosuggestField({
+                        label: 'Client Secret.'|t('teamleader-focus'),
+                        instructions: "Enter your Teamleader Focus {label} here."|t('teamleader-focus'),
+                        name: 'settings[clientSecret]',
+                        suggestEnvVars: true,
+                        value: settings.clientSecret,
+                        required: false,
+                    }) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{#{% set displayName = integration.displayName() %}
+
+{% set instructions %}
+    ### Step 1. Connect to the {name} API
+    1. Go to <a href="https://focus.teamleader.eu/oauth2/authorize" target="_blank">{name}</a> and login to your account.
+    2. Go to <a href="https://marketplace.teamleader.eu/be/en/build/integrations" target="_blank">Build an integration</a> and click "Create New Integration"
+    3. Follow the steps and fill in the required fields
+    4. Make sure the following OAuth scopes are selected:
+    - Companies
+    - Contacts
+    - Deals
+    5. Click the **Save Changes** button at the end of the form
+    6. Once created copy the **Client ID** and the **Client Secret** from {name} and paste in the fields below.
+
+    ### Step 2. Test Connection
+    1. Save this integration.
+    2. Click on the **Refresh** button in the right-hand sidebar.
+{% endset %}
+
+<div class="fui-settings-block">
+    {{ instructions | t('formie', { name: displayName }) | md }}
+</div>
+
+{% if not craft.app.config.general.allowAdminChanges %}
+    <span class="warning with-icon">
+        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
+    </span>
+{% endif %}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client ID' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'clientId',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientId ?? '',
+    warning: macros.configWarning('clientId', 'formie'),
+    errors: integration.getErrors('clientId'),
+}) }}
+
+{{ macros.proxyField(fieldVariables, 'autosuggestField', {
+    label: 'Client Secret' | t('formie'),
+    instructions: 'Enter your {name} {label} here.' | t('formie'),
+    name: 'clientSecret',
+    required: true,
+    suggestEnvVars: true,
+    value: integration.settings.clientSecret ?? '',
+    warning: macros.configWarning('clientSecret', 'formie'),
+    errors: integration.getErrors('clientSecret'),
+}) }}#}

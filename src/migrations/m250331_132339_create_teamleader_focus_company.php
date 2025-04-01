@@ -4,7 +4,7 @@ namespace craftpulse\teamleader\migrations;
 
 use Craft;
 use craft\db\Migration;
-use craft\teamleader\db\Table;
+use craftpulse\teamleader\db\Table;
 
 /**
  * m250331_132339_create_teamleader_focus_company migration.

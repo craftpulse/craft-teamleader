@@ -17,11 +17,13 @@ use Throwable;
 use craft\base\Plugin;
 use craft\elements\User;
 use craft\events\RegisterComponentTypesEvent;
+use craft\log\MonologTarget;
 use craft\services\Elements;
 use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
+use craftpulse\teamleader\models\SettingsModel;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
@@ -63,6 +65,13 @@ class Teamleader extends Plugin {
      * @var ?Teamleader
      */
     public static ?Teamleader $plugin = null;
+
+    // Public Properties
+    // =========================================================================
+    /**
+     * @var null|SettingsModel
+     */
+    public static ?SettingsModel $settings = null;
     /**
      * @var string
      */
