@@ -2,3 +2,13 @@
 {% set title = 'Companies'|t('app') %}
 {% set elementType = 'craftpulse\\teamleader\\elements\\Company' %}
 {% set canHaveDrafts = true %}
+
+{% block actionButton %}
+    {{ tag('a', {
+        class: 'btn submit add icon',
+        href: actionUrl('elements/create', {
+            elementType: elementType
+        }),
+        text: 'New company'|t('teamleader-focus'),
+    }) }}
+{% endblock %}

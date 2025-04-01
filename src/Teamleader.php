@@ -11,9 +11,12 @@
 namespace craftpulse\teamleader;
 
 use Craft;
+use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\models\FieldLayout;
 use craft\web\UrlManager;
+use craftpulse\teamleader\services\ServicesTrait;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
@@ -42,6 +45,8 @@ use yii\log\Logger;
 class Teamleader extends Plugin {
     // Traits
     // =========================================================================
+
+    use ServicesTrait ;
 
     // Constant Properties
     // =========================================================================
@@ -79,6 +84,7 @@ class Teamleader extends Plugin {
      */
     public bool $hasCpSettings = false;
 
+
     /**
      * @inheritdoc
      */
@@ -115,6 +121,7 @@ class Teamleader extends Plugin {
         // Register control panel events
         if (Craft::$app->getRequest()->getIsCpRequest()) {
             $this->_registerCpUrlRules();
+            $this->_registerFieldLayout();
         }
 
         // Run all the migrations after install
@@ -139,6 +146,8 @@ class Teamleader extends Plugin {
      */
     public function getCpNavItem(): ?array
     {
+        if (self::editions() === self::EDITION_LITE) {return null;}
+
         $subNavs = [];
         $navItem = parent::getCpNavItem();
         $currentUser = Craft::$app->getUser()->getIdentity();
@@ -215,6 +224,7 @@ class Teamleader extends Plugin {
         Craft::getLogger()->log($message, $type, 'teamleader-focus');
     }
 
+
     // Private Methods
     // =========================================================================
     /**
@@ -230,12 +240,37 @@ class Teamleader extends Plugin {
                     [
                         'teamleader-focus' => ['template' => 'teamleader-focus/companies/_index.twig'],
                         'teamleader-focus/companies' => ['template' => 'teamleader-focus/companies/_index.twig'],
+                        'teamleader-focus/companies/<elementId:\d+>' => 'elements/edit',
                     ],
                     $event->rules,
                 );
             }
         );
     }
+
+    private function _registerFieldLayout(): void
+    {
+        Event::on(
+            FieldLayout::class,
+            FieldLayout::EVENT_DEFINE_NATIVE_FIELDS,
+            function (DefineFieldLayoutFieldsEvent $event) {
+                /** @var FieldLayout $fieldLayout */
+                $fieldLayout = $event->sender;
+
+                // We only want to provide these options for our route field layouts:
+                if ($fieldLayout->type !== Company::class) {
+                    return;
+                }
+
+                // Add our custom fields
+                foreach ($this->getCompanies()->createFields() as $field)
+                {
+                    $event->fields[] = $field;
+                }
+            }
+        );
+    }
+
 
     private function _registerFormieEventHandlers(): void {
         Event::on(

@@ -8,9 +8,11 @@ use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
 use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
+use craftpulse\teamleader\records\CompanyRecord;
 use yii\web\Response;
 
 /**
@@ -50,7 +52,12 @@ class Company extends Element
     /**
      * @var string
      */
-    public string $name;
+    public string $name = '';
+
+    /**
+     * @var null|FieldLayout Field layout
+     */
+    private ?FieldLayout $fieldLayout = null;
 
 
     // Public Static Methods
@@ -194,8 +201,6 @@ class Company extends Element
     {
         return [
             'title' => Craft::t('app', 'Title'),
-            'slug' => Craft::t('app', 'Slug'),
-            'uri' => Craft::t('app', 'URI'),
             [
                 'label' => Craft::t('app', 'Date Created'),
                 'orderBy' => 'elements.dateCreated',
@@ -256,6 +261,11 @@ class Company extends Element
         ]);
     }
 
+    protected function cpEditUrl(): ?string
+    {
+        return sprintf('teamleader-focus/companies/%s', $this->getCanonicalId());
+    }
+
     /**
      * @return array
      */
@@ -289,14 +299,6 @@ class Company extends Element
         ];
     }
 
-    /**
-     * @return string|null
-     */
-    protected function cpEditUrl(): ?string
-    {
-        return sprintf('companies/%s', $this->getCanonicalId());
-    }
-
     // Public Methods
     // =========================================================================
     /**
@@ -306,10 +308,51 @@ class Company extends Element
     public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
-            // todo: update the `companies` table
+            if ($isNew) {
+                $companyRecord = new CompanyRecord();
+                $companyRecord->id = $this->id;
+            } else {
+                $companyRecord = CompanyRecord::findOne($this->id);
+            }
+
+            $companyRecord->fieldLayoutId = $this->fieldLayout->id;
+            $companyRecord->name = $this->title;
+
+            $companyRecord->save(false);
         }
 
         parent::afterSave($isNew);
+    }
+
+    /**
+     * @inheritdoc
+     * @return FieldLayout|null
+     */
+    public function getFieldLayout(): ?FieldLayout
+    {
+        if ($this->fieldLayout !== null) {
+            return $this->fieldLayout;
+        }
+
+        $this->fieldLayout = Craft::$app->getFields()->getLayoutByType(self::class);
+
+        return $this->fieldLayout;
+    }
+
+    public function getPostEditUrl(): ?string
+    {
+        return UrlHelper::cpUrl('teamleader-focus/companies');
+    }
+
+    public function prepareEditScreen(Response $response, string $containerId): void
+    {
+        /** @var Response|CpScreenResponseBehavior $response */
+        $response->crumbs([
+            [
+                'label' => self::pluralDisplayName(),
+                'url' => UrlHelper::cpUrl('teamleader-focus/companies'),
+            ],
+        ]);
     }
 
     /**
@@ -318,8 +361,8 @@ class Company extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-        $this->emails = !empty($this->emails) ? json_encode($this->emails) : null;
-        $this->telephones = !empty($this->telephones) ? json_encode($this->telephones) : null;
+        $this->emails = !empty($this->emails) ? json_encode($this->emails) : [];
+        $this->telephones = !empty($this->telephones) ? json_encode($this->telephones) : [];
 
         return parent::beforeSave($isNew);
     }
@@ -422,39 +465,6 @@ class Company extends Element
         }
         // todo: implement user permissions
         return $user->can('teamleader-focus:delete-companies');
-    }
-
-    /**
-     * @param User $user
-     * @return bool
-     */
-    public function canCreateDrafts(User $user): bool
-    {
-        return true;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPostEditUrl(): ?string
-    {
-        return UrlHelper::cpUrl('companies');
-    }
-
-    /**
-     * @param Response $response
-     * @param string $containerId
-     * @return void
-     */
-    public function prepareEditScreen(Response $response, string $containerId): void
-    {
-        /** @var Response|CpScreenResponseBehavior $response */
-        $response->crumbs([
-            [
-                'label' => self::pluralDisplayName(),
-                'url' => UrlHelper::cpUrl('companies'),
-            ],
-        ]);
     }
 
 }
