@@ -8,17 +8,14 @@
 
 namespace craftpulse\teamleader\services;
 
-use craftpulse\teamleader\services\Redirects;
-use craftpulse\teamleader\services\Routes;
-use craftpulse\teamleader\services\Statistics;
+use yii\base\InvalidConfigException;
 
 /**
  * @author    CraftPulse
  * @package   teamleader
  *
- * @property Redirects $redirects
- * @property Routes $routes
- * @property Statistics $statistics
+ * @property Companies $companies
+ * @property Providers $providers
  */
 trait ServicesTrait
 {
@@ -27,6 +24,7 @@ trait ServicesTrait
         return [
             'components' => [
                 'companies' => Companies::class,
+                'providers' => Providers::class,
             ]
         ];
     }
@@ -34,15 +32,26 @@ trait ServicesTrait
     // Public Methods
     // =========================================================================
 
-
     /**
-     * Returns the routes service
+     * Returns the companies service
      *
-     * @return Companies The routes service
+     * @return Companies The companies service
      * @throws InvalidConfigException
      */
     public function getCompanies(): Companies
     {
         return $this->get('companies');
     }
+
+    /**
+     * Returns the companies service
+     *
+     * @return Providers The companies service
+     * @throws InvalidConfigException
+     */
+    public function getProviders(): Providers
+    {
+        return $this->get('providers');
+    }
+
 }

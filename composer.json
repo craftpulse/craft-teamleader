@@ -32,7 +32,7 @@
     "craftcms/cms": "^5.0.0",
     "league/oauth2-client": "^2.0.0",
     "verbb/formie": "^3.0.0",
-    "verbb/auth": "^2.0.20",
+    "verbb/auth": "^2.0.20"
   },
   "require-dev":{
     "craftcms/ecs": "dev-main",

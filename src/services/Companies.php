@@ -3,13 +3,17 @@
 namespace craftpulse\teamleader\services;
 
 use Craft;
-use craft\fieldlayoutelements\TextField;
-use craft\fields\Table;
-use craftpulse\teamleader\fieldlayoutelements\TableField;
 use yii\base\Component;
+use craft\fieldlayoutelements\TextField;
+use craftpulse\teamleader\fieldlayoutelements\TableField;
 
 /**
- * Companies service
+ * Class Companies
+ *
+ * @author      CraftPulse
+ * @package     Teamleader
+ * @since       5.0.0
+ *
  */
 class Companies extends Component
 {
