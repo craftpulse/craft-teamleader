@@ -4,9 +4,14 @@ namespace craftpulse\teamleader\elements;
 
 use Craft;
 use craft\base\Element;
+use craft\elements\Address;
+use craft\elements\db\AddressQuery;
+use craft\elements\ElementCollection;
+use craft\elements\NestedElementManager;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\enums\PropagationMethod;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
@@ -49,6 +54,7 @@ class Company extends Element
      * @var array
      */
     public array $telephones = [];
+    public ElementCollection $addresses;
     /**
      * @var string
      */
@@ -321,7 +327,31 @@ class Company extends Element
             $companyRecord->save(false);
         }
 
+        Craft::dd($this->emails);
+
         parent::afterSave($isNew);
+    }
+
+    /**
+     * Gets the user’s addresses.
+     *
+     * @return ElementCollection<Address>
+     * @since 4.0.0
+     */
+    public function getAddresses(): ElementCollection
+    {
+        if (!isset($this->addresses)) {
+            if (!$this->id) {
+                /** @var ElementCollection<Address> */
+                return ElementCollection::make();
+            }
+
+            $this->addresses = $this->createAddressQuery()
+                ->andWhere(['fieldId' => null])
+                ->collect();
+        }
+
+        return $this->addresses;
     }
 
     /**
@@ -374,6 +404,8 @@ class Company extends Element
     {
         parent::afterFind();
 
+        $this->addresses = new ElementCollection();
+
         $this->emails = $this->emails ? json_decode($this->emails, true) : [];
         $this->telephones = $this->telephones ? json_decode($this->telephones, true) : [];
     }
@@ -397,6 +429,13 @@ class Company extends Element
     {
         // If companies should have URLs, define their URI format here
         return null;
+    }
+
+    public function init(): void
+    {
+        parent::init();
+
+        $this->getAddresses();
     }
 
     /**
@@ -465,6 +504,16 @@ class Company extends Element
         }
         // todo: implement user permissions
         return $user->can('teamleader-focus:delete-companies');
+    }
+
+    // Private Methods
+    // =========================================================================
+    private function createAddressQuery(): AddressQuery
+    {
+        // @TODO: add owner to only get current elements
+        return Address::find()
+//            ->owner($this)
+            ->orderBy(['id' => SORT_ASC]);
     }
 
 }

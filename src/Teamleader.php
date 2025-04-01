@@ -54,8 +54,7 @@ use yii\log\Logger;
 class Teamleader extends Plugin {
     // Traits
     // =========================================================================
-
-    use ServicesTrait ;
+    use ServicesTrait;
 
     // Constant Properties
     // =========================================================================
@@ -322,14 +321,12 @@ class Teamleader extends Plugin {
                 $fieldLayout = $event->sender;
 
                 // We only want to provide these options for our route field layouts:
-                if ($fieldLayout->type !== Company::class) {
-                    return;
-                }
-
-                // Add our custom fields
-                foreach ($this->getCompanies()->createFields() as $field)
-                {
-                    $event->fields[] = $field;
+                if ($fieldLayout->type == Company::class) {
+                    // Add our custom fields
+                    foreach ($this->getCompanies()->createFields() as $field)
+                    {
+                        $event->fields[] = $field;
+                    }
                 }
             }
         );

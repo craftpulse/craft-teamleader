@@ -6,6 +6,7 @@ use Craft;
 use craft\fieldlayoutelements\BaseNativeField;
 use craft\base\ElementInterface;
 use craft\helpers\Cp;
+use craft\helpers\DateTimeHelper;
 use craft\helpers\Json;
 use craft\web\assets\tablesettings\TableSettingsAsset;
 use craft\web\assets\timepicker\TimepickerAsset;
@@ -16,7 +17,6 @@ class TableField extends BaseNativeField
 {
     // Public Properties
     // =========================================================================
-
     /**
      * @inheritdoc
      */
@@ -33,9 +33,14 @@ class TableField extends BaseNativeField
     public ?string $name = null;
 
     /**
-     * @var array<int, array{label: string, value: string}>
+     * @var array<int, array{heading: string, handle: string, type: string}>
      */
     public array $columns = [];
+
+    /**
+     * @var array<int, array{label: string, value: string}>
+     */
+    public array $defaults = [[]];
 
     // Public Methods
     // =========================================================================
@@ -45,14 +50,6 @@ class TableField extends BaseNativeField
      */
     public function __construct($config = [])
     {
-        unset(
-            $config['mandatory'],
-            $config['translatable'],
-            $config['maxlength'],
-            $config['required'],
-            $config['autofocus']
-        );
-
         parent::__construct($config);
     }
 
@@ -68,34 +65,16 @@ class TableField extends BaseNativeField
             throw new InvalidArgumentException(sprintf('%s can only be used in route field layouts.', __CLASS__));
         }
 
-//        $view = Craft::$app->getView();
-//
-//        $view->registerAssetBundle(TimepickerAsset::class);
-//        $view->registerAssetBundle(TableSettingsAsset::class);
-//        $view->registerJs('new Craft.TableFieldSettings(' .
-//            Json::encode($view->namespaceInputName('columns')) . ', ' .
-//            Json::encode($view->namespaceInputName('defaults')) . ', ' .
-//            Json::encode($columns) . ', ' .
-//            Json::encode($this->defaults ?? []) . ', ' .
-//            Json::encode($columnSettings) . ', ' .
-//            Json::encode($dropdownSettingsHtml) . ', ' .
-//            Json::encode($dropdownSettingsCols) .
-//            ');');
-//
-//        $columnsField = $view->renderTemplate('_components/fieldtypes/Table/columntable.twig', [
-//            'cols' => $columnSettings,
-//            'rows' => $this->columns,
-//            'errors' => $this->getErrors('columns'),
-//        ]);
-
         return Cp::editableTableFieldHtml([
             'allowAdd' => true,
-            'allowReorder' => true,
             'allowDelete' => true,
+            'allowReorder' => true,
             'cols' => $this->columns,
+            'initJs' => true,
+            'mandatory' => $this->mandatory,
             'name' => $this->name,
+            'required' => $this->required,
             'rows' => [],
-            'initJs' => false,
         ]);
     }
 
