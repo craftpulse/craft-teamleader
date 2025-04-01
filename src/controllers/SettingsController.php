@@ -7,7 +7,9 @@ use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
 
+use craftpulse\teamleader\services\Providers as ProviderService;
 use craftpulse\teamleader\Teamleader;
+
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
@@ -19,6 +21,7 @@ use yii\web\Response;
  * @package     Teamleader
  * @since       5.0.0
  *
+ * @property ProviderService $providers
  */
 class SettingsController extends Controller
 {
@@ -67,6 +70,7 @@ class SettingsController extends Controller
             ],
         ];
         $variables['settings'] = Teamleader::$plugin->settings;
+        $variables['connected'] = (bool)Teamleader::$plugin->providers->getToken();
 
         return $this->renderTemplate('teamleader-focus/settings/_edit', $variables);
     }

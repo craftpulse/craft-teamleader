@@ -18,10 +18,10 @@ use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
+use craft\helpers\Json;
 use craft\log\MonologTarget;
 use craft\models\FieldLayout;
 use craft\services\Elements;
-use craft\services\Plugins;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
 
@@ -48,6 +48,7 @@ use yii\log\Logger;
  * @package     Teamleader
  * @since       5.0.0
  *
+ * @property SettingsModel|null $settings
  * @method Settings getSettings()
  *
  */
@@ -95,11 +96,11 @@ class Teamleader extends Plugin {
     /**
      * @var bool
      */
-    public bool $hasCpSection = true;
+    public bool $hasCpSection = false;
     /**
      * @var bool
      */
-    public bool $hasCpSettings = true;
+    public bool $hasCpSettings = false;
     /**
      * @var mixed|object|null
      */
@@ -123,6 +124,14 @@ class Teamleader extends Plugin {
     public function init(): void {
         parent::init();
         self::$plugin = $this;
+
+        if ($this->getIsPlus() || $this->getIsPro()) {
+            $this->hasCpSettings = true;
+            $this->hasCpSection = true;
+        }
+
+        // Register custom log target
+        $this->_registerLogTarget();
 
         $request = Craft::$app->getRequest();
         if ($request->getIsConsoleRequest()) {

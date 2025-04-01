@@ -18,34 +18,64 @@
     <div id="api" class="flex-fields">
         <div class="flex field">
             <div class="flex-grow">
-                <div class="field">
-                    {{ forms.autosuggestField({
-                        label: 'Client ID.'|t('teamleader-focus'),
-                        instructions: "Enter your Teamleader Focus {label} here."|t('teamleader-focus'),
-                        name: 'settings[clientId]',
-                        suggestEnvVars: true,
-                        value: settings.clientId,
-                        required: true,
-                    }) }}
-                </div>
+                {{ forms.autosuggestField({
+                    label: 'Client ID.'|t('teamleader-focus'),
+                    instructions: "Enter your Teamleader Focus client ID here."|t('teamleader-focus'),
+                    name: 'settings[clientId]',
+                    suggestEnvVars: true,
+                    value: settings.clientId,
+                    required: true,
+                }) }}
 
-                <div class="field">
-                    {{ forms.autosuggestField({
-                        label: 'Client Secret.'|t('teamleader-focus'),
-                        instructions: "Enter your Teamleader Focus {label} here."|t('teamleader-focus'),
-                        name: 'settings[clientSecret]',
-                        suggestEnvVars: true,
-                        value: settings.clientSecret,
-                        required: false,
-                    }) }}
-                </div>
+                {{ forms.autosuggestField({
+                    label: 'Client Secret.'|t('teamleader-focus'),
+                    instructions: "Enter your Teamleader Focus client secret here."|t('teamleader-focus'),
+                    name: 'settings[clientSecret]',
+                    suggestEnvVars: true,
+                    value: settings.clientSecret,
+                    required: true,
+                }) }}
+
+                {%- if settings.clientSecret and settings.clientId -%}
+                    <div class="field">
+                        <div class="heading">
+                            <label>
+                                Connection
+                            </label>
+                        </div>
+                        <div class="instructions tw-mb-1">
+                            <p>
+                                {{ 'The connection status. Connect or disconnected from your Teamleader Focus platform.'|t }}
+                            </p>
+                        </div>
+                        {%- if connected -%}
+                            <div class="flex tw-gap-2">
+                                <div class="status enabled"></div> <span>{{ 'Connected'|t('teamleader-focus') }}</span>
+                                <div class="input ltr">
+                                    <a class="btn small formsubmit" data-action="teamleader-focus/auth/disconnect">
+                                        {{ 'Disconnect'|t('teamleader-focus') }}
+                                    </a>
+                                </div>
+                            </div>
+
+                        {%- else -%}
+                            <div class="flex tw-gap-2">
+                                <div class="status disabled"></div> <span>{{ 'Not connected'|t('teamleader-focus') }}</span>
+                                <div class="input ltr">
+                                    <a class="btn small formsubmit" data-action="teamleader-focus/auth/connect">
+                                        {{ 'Connect'|t('teamleader-focus') }}
+                                    </a>
+                                </div>
+                            </div>
+                        {%- endif -%}
+                    </div>
+                {%- endif -%}
             </div>
         </div>
     </div>
 {% endblock %}
 
-{#{% set displayName = integration.displayName() %}
-
+{#
 {% set instructions %}
     ### Step 1. Connect to the {name} API
     1. Go to <a href="https://focus.teamleader.eu/oauth2/authorize" target="_blank">{name}</a> and login to your account.
@@ -61,36 +91,4 @@
     ### Step 2. Test Connection
     1. Save this integration.
     2. Click on the **Refresh** button in the right-hand sidebar.
-{% endset %}
-
-<div class="fui-settings-block">
-    {{ instructions | t('formie', { name: displayName }) | md }}
-</div>
-
-{% if not craft.app.config.general.allowAdminChanges %}
-    <span class="warning with-icon">
-        {{ 'Integration settings can only be editable on an environment with `allowAdminChanges` enabled.' | t('formie') | md(inlineOnly=true) }}
-    </span>
-{% endif %}
-
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'Client ID' | t('formie'),
-    instructions: 'Enter your {name} {label} here.' | t('formie'),
-    name: 'clientId',
-    required: true,
-    suggestEnvVars: true,
-    value: integration.settings.clientId ?? '',
-    warning: macros.configWarning('clientId', 'formie'),
-    errors: integration.getErrors('clientId'),
-}) }}
-
-{{ macros.proxyField(fieldVariables, 'autosuggestField', {
-    label: 'Client Secret' | t('formie'),
-    instructions: 'Enter your {name} {label} here.' | t('formie'),
-    name: 'clientSecret',
-    required: true,
-    suggestEnvVars: true,
-    value: integration.settings.clientSecret ?? '',
-    warning: macros.configWarning('clientSecret', 'formie'),
-    errors: integration.getErrors('clientSecret'),
-}) }}#}
+{% endset %} #}

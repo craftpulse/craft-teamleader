@@ -20,12 +20,12 @@ class SettingsModel extends Model
     // =========================================================================
 
     /**
-     * @var string the Client ID of the Teamleader Focus App
+     * @var string|null the Client ID of the Teamleader Focus App
      */
     public ?string $clientId = null;
 
     /**
-     * @var string the Client Secret of the Teamleader Focus App
+     * @var string|null the Client Secret of the Teamleader Focus App
      */
     public ?string $clientSecret = null;
 

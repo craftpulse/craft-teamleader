@@ -6,12 +6,19 @@ use Craft;
 use craft\fieldlayoutelements\TextField;
 use craft\fields\Addresses;
 use craft\fields\Table;
+
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
+
 use yii\base\Component;
 
 /**
- * Companies service
+ * Class Companies
+ *
+ * @author      CraftPulse
+ * @package     Teamleader
+ * @since       5.0.0
+ *
  */
 class Companies extends Component
 {
