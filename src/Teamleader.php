@@ -11,28 +11,33 @@
 namespace craftpulse\teamleader;
 
 use Craft;
-use craft\events\DefineFieldLayoutFieldsEvent;
-use craft\events\RegisterUrlRulesEvent;
-use craft\events\RegisterUserPermissionsEvent;
-use craft\models\FieldLayout;
-use craft\web\UrlManager;
-use craftpulse\teamleader\services\ServicesTrait;
-use Monolog\Formatter\LineFormatter;
-use Psr\Log\LogLevel;
-use Throwable;
+use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\User;
+use craft\events\DefineFieldLayoutFieldsEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterUrlRulesEvent;
+use craft\events\RegisterUserPermissionsEvent;
 use craft\log\MonologTarget;
+use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\Plugins;
 use craft\services\UserPermissions;
+use craft\web\UrlManager;
+
 use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
+use craftpulse\teamleader\services\ServicesTrait;
+
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
+
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
+use Throwable;
 use yii\base\Event;
+use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;
 use yii\log\Logger;
 
@@ -42,6 +47,8 @@ use yii\log\Logger;
  * @author      CraftPulse
  * @package     Teamleader
  * @since       5.0.0
+ *
+ * @method Settings getSettings()
  *
  */
 class Teamleader extends Plugin {
@@ -69,6 +76,7 @@ class Teamleader extends Plugin {
 
     // Static Properties
     // =========================================================================
+
     /**
      * @var ?Teamleader
      */
@@ -76,6 +84,7 @@ class Teamleader extends Plugin {
 
     // Public Properties
     // =========================================================================
+
     /**
      * @var null|SettingsModel
      */
@@ -91,7 +100,11 @@ class Teamleader extends Plugin {
     /**
      * @var bool
      */
-    public bool $hasCpSettings = false;
+    public bool $hasCpSettings = true;
+    /**
+     * @var mixed|object|null
+     */
+    public mixed $queue = null;
 
 
     /**
@@ -149,13 +162,23 @@ class Teamleader extends Plugin {
         // Permissions
         $this->_registerUserPermissions();
     }
+
+    /**
+     * @inheritdoc
+     * @throws InvalidRouteException
+     */
+    public function getSettingsResponse(): mixed
+    {
+        return Craft::$app->getResponse()->redirect('teamleader-focus/settings');
+    }
+
     /**
      * @inheritdoc
      * @throws Throwable
      */
     public function getCpNavItem(): ?array
     {
-        if (self::editions() === self::EDITION_LITE) {return null;}
+        if (self::editions() == self::EDITION_LITE) return null;
 
         $subNavs = [];
         $navItem = parent::getCpNavItem();
@@ -175,6 +198,13 @@ class Teamleader extends Plugin {
             ];
         }
 
+        if ($currentUser->can('teamleader-focus:settings') && $editableSettings) {
+            $subNavs['settings'] = [
+                'label' => 'Settings',
+                'url' => 'teamleader-focus/settings',
+            ];
+        }
+
         if (empty($subNavs)) {
             return null; // Don't show the menu if no sub-navigation exists
         }
@@ -183,6 +213,7 @@ class Teamleader extends Plugin {
             'subnav' => $subNavs,
         ]);
     }
+
     /**
      * Returns true if lite version.
      *
@@ -233,6 +264,28 @@ class Teamleader extends Plugin {
         Craft::getLogger()->log($message, $type, 'teamleader-focus');
     }
 
+    // Protected Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     */
+    protected function settingsHtml(): ?string
+    {
+        return Craft::$app->getView()->renderTemplate(
+            'teamleader-focus/settings/_edit',
+            ['settings' => $this->getSettings()]
+        );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function createSettingsModel(): ?Model
+    {
+        return new SettingsModel();
+    }
+
 
     // Private Methods
     // =========================================================================
@@ -250,6 +303,8 @@ class Teamleader extends Plugin {
                         'teamleader-focus' => ['template' => 'teamleader-focus/companies/_index.twig'],
                         'teamleader-focus/companies' => ['template' => 'teamleader-focus/companies/_index.twig'],
                         'teamleader-focus/companies/<elementId:\d+>' => 'elements/edit',
+                        'teamleader-focus/settings' => 'teamleader-focus/settings/edit',
+                        'teamleader-focus/teamleader-focus' => 'teamleader-focus/settings/edit',
                     ],
                     $event->rules,
                 );
@@ -309,6 +364,9 @@ class Teamleader extends Plugin {
                         ],
                         'teamleader-focus:delete-companies' => [
                             'label' => Craft::t('teamleader-focus', 'Delete companies'),
+                        ],
+                        'teamleader-focus:settings' => [
+                            'label' => Craft::t('teamleader-focus', 'Access settings'),
                         ],
                     ],
                 ];

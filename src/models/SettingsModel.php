@@ -4,11 +4,7 @@ namespace craftpulse\teamleader\models;
 
 use Craft;
 use craft\base\Model;
-use craft\base\PluginInterface;
-
-use League\OAuth2\Client\Token\AccessToken;
-
-use DateTime;
+use craft\behaviors\EnvAttributeParserBehavior;
 
 /**
  * Class Token
@@ -23,43 +19,36 @@ class SettingsModel extends Model
     // Public Properties
     // =========================================================================
 
-    public ?int $id = null;
-    public ?string $accessToken = null;
-    public ?string $secret = null;
-    public ?string $expires = null;
-    public ?string $refreshToken = null;
-    public ?string $resourceOwnerId = null;
-    public array $values = [];
-    public ?DateTime $dateCreated = null;
-    public ?DateTime $dateUpdated = null;
-    public ?string $uid = null;
+    /**
+     * @var string the Client ID of the Teamleader Focus App
+     */
+    public ?string $clientId = null;
 
-    // Private Properties
+    /**
+     * @var string the Client Secret of the Teamleader Focus App
+     */
+    public ?string $clientSecret = null;
+
+    // Protected Methods
     // =========================================================================
 
-    private ?AccessToken $_token = null;
-
-    // Public Methods
-    // =========================================================================
-
-    public function setToken(AccessToken $token): void
+    protected function defineBehaviors(): array
     {
-        $this->_token = $token;
+        return [
+            'parser' => [
+                'class' => EnvAttributeParserBehavior::class,
+                'attributes' => ['clientId', 'clientSecret'],
+            ],
+        ];
     }
 
-    public function getToken(): ?AccessToken
+    /**
+     * @inheritdoc
+     */
+    protected function defineRules(): array
     {
-        if ($this->_token) {
-            return $this->_token;
-        }
-
-        return $this->_token = new AccessToken(
-            array_merge($this->values, [
-              'access_token' => $this->accessToken,
-              'refresh_token' => $this->refreshToken,
-              'expires' => $this->expires,
-              'resource_owner_id' => $this->resourceOwnerId,
-            ])
-        );
+        return [
+            [['clientId', 'clientSecret'], 'required'],
+        ];
     }
 }
