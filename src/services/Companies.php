@@ -3,9 +3,14 @@
 namespace craftpulse\teamleader\services;
 
 use Craft;
-use yii\base\Component;
 use craft\fieldlayoutelements\TextField;
+use craft\fields\Addresses;
+use craft\fields\Table;
+
+use craftpulse\teamleader\fieldlayoutelements\AddressField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
+
+use yii\base\Component;
 
 /**
  * Class Companies
@@ -52,22 +57,37 @@ class Companies extends Component
                 'attribute' => 'emails',
                 'name' => 'emails',
                 'label' => Craft::t('teamleader-focus', 'Emails'),
-                'mandatory' => true,
                 'required' => false,
                 'width' => '100%',
                 'columns' => [
-                    'email' => [
-                        'name' => 'email',
-                        'heading' => Craft::t('teamleader-focus', 'Email'),
-                        'type' => 'singleline',
+                    'type' => [
+                        'heading' => Craft::t('teamleader-focus', 'Type'),
+                        'type' => 'select',
+                        'options' => [
+                            [
+                                'label' => Craft::t('teamleader-focus', 'Primary'),
+                                'value' => 'primary',
+                            ],
+                            [
+                                'label' => Craft::t('teamleader-focus', 'Invoicing'),
+                                'value' => 'invoicing',
+                            ]
+                        ],
                     ],
-                    'name' => [
-                        'name' => 'name',
-                        'heading' => Craft::t('teamleader-focus', 'Name'),
-                        'type' => 'singleline',
+                    'email' => [
+                        'heading' => Craft::t('teamleader-focus', 'Email'),
+                        'type' => 'email',
                     ],
                 ],
-            ],
+            ], [
+                'class' => AddressField::class,
+                'field' => 'addresses',
+                'attribute' => 'address',
+                'name' => 'addresses',
+                'label' => Craft::t('teamleader-focus', 'Addresses'),
+                'required' => false,
+                'width' => '100%',
+            ]
         ];
 
         return $fields;

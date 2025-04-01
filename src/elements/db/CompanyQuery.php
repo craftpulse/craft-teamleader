@@ -5,6 +5,7 @@ namespace craftpulse\teamleader\elements\db;
 use Craft;
 use craft\elements\db\ElementQuery;
 use craftpulse\teamleader\db\Table;
+use craftpulse\teamleader\elements\Company;
 
 /**
  * Company query
