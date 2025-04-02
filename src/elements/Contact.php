@@ -191,38 +191,54 @@ class Contact extends Element
 
     public function canView(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canView($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('viewContacts');
+        return $user->can('teamleader-focus:view-contacts');
     }
 
     public function canSave(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canSave($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('saveContacts');
+        return $user->can('teamleader-focus:save-contacts');
     }
 
     public function canDuplicate(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canDuplicate($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('saveContacts');
+        return $user->can('teamleader-focus:save-contacts');
     }
 
     public function canDelete(User $user): bool
     {
+        if ($user->admin) {
+            return true; // Admins can always view
+        }
+
         if (parent::canSave($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('deleteContacts');
+        return $user->can('teamleader-focus:delete-contacts');
     }
 
     public function canCreateDrafts(User $user): bool
