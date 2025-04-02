@@ -8,11 +8,11 @@ use craft\db\MigrationManager;
 use craft\helpers\Db;
 
 use craftpulse\teamleader\db\Table;
+use craft\db\Table as CraftTable;
 use craftpulse\teamleader\elements\Company as CompanyElement;
 use craftpulse\teamleader\elements\Contact as ContactElement;
 use craftpulse\teamleader\elements\Deal as DealElement;
 
-use craftpulse\teamleader\records\CompanyRecord;
 use Exception;
 use Throwable;
 use verbb\auth\Auth;
@@ -79,9 +79,9 @@ class Install extends Migration
      */
     protected function createTables(): bool
     {
-        if(!$this->db->tableExists(CompanyRecord::tableName())) {
+        if(!$this->db->tableExists(Table::COMPANIES)) {
             $this->createTable(
-                Table::COMPANY,
+                TABLE::COMPANIES,
                 [
                     'id' => $this->primaryKey(),
                     'dateCreated' => $this->dateTime()->notNull(),
@@ -101,6 +101,23 @@ class Install extends Migration
             );
         }
 
+        if(!$this->db->tableExists(Table::COMPANIES_ADDRESSES)) {
+            $this->createTable(
+                TABLE::COMPANIES_ADDRESSES,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    //foreign keys
+                    'addressId' => $this->integer(),
+                    'companyId' => $this->integer(),
+                ]
+            );
+        }
+
         if(!$this->db->tableExists(Table::CONTACTS)) {
             $this->createTable(
                 Table::CONTACTS,
@@ -116,6 +133,23 @@ class Install extends Migration
             );
         }
 
+        if(!$this->db->tableExists(Table::CONTACTS_COMPANIES)) {
+            $this->createTable(
+                Table::CONTACTS_COMPANIES,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    //foreign keys
+                    'companyId' => $this->integer(),
+                    'contactId' => $this->integer(),
+                ]
+            );
+        }
+
         if(!$this->db->tableExists(Table::DEALS)) {
             $this->createTable(
                 Table::DEALS,
@@ -127,6 +161,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // data
+
                 ]
             );
         }
@@ -139,31 +174,85 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
-        $this->addForeignKey(
-            null,
-            Table::COMPANY,
-            'id',
-            '{{%elements}}',
-            'id',
-            'CASCADE',
-            null
-        );
+        if(!$this->db->tableExists(Table::COMPANIES)) {
+            $this->addForeignKey(
+                null,
+                Table::COMPANIES,
+                'id',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                null
+            );
+        }
 
-        $this->addForeignKey(
-            null,
-            Table::CONTACTS,
-            'id',
-            '{{%elements}}',
-            'id',
-            'CASCADE',
-            null
-        );
+        if(
+            !$this->db->tableExists(Table::COMPANIES) &&
+            !$this->db->tableExists(Table::COMPANIES_ADDRESSES)
+        ) {
+            $this->addForeignKey(
+                null,
+                Table::COMPANIES_ADDRESSES,
+                'addressId',
+                CraftTable::ADDRESSES,
+                'id',
+                'CASCADE',
+                null
+            );
+
+            $this->addForeignKey(
+                null,
+                Table::COMPANIES_ADDRESSES,
+                'companyId',
+                Table::COMPANIES,
+                'id',
+                'CASCADE',
+                null
+            );
+        }
+
+        if(!$this->db->tableExists(Table::CONTACTS)) {
+            $this->addForeignKey(
+                null,
+                Table::CONTACTS,
+                'id',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                null
+            );
+        }
+
+        if(
+            !$this->db->tableExists(TABLE::COMPANIES) &&
+            !$this->db->tableExists(Table::CONTACTS) &&
+            !$this->db->tableExists(Table::CONTACTS_COMPANIES)
+        ) {
+            $this->addForeignKey(
+                null,
+                Table::CONTACTS_COMPANIES,
+                'companyId',
+                Table::COMPANIES,
+                'id',
+                'CASCADE',
+                null
+            );
+            $this->addForeignKey(
+                null,
+                Table::CONTACTS_COMPANIES,
+                'contactId',
+                Table::CONTACTS,
+                'id',
+                'CASCADE',
+                null
+            );
+        }
 
         $this->addForeignKey(
             null,
             Table::DEALS,
             'id',
-            '{{%elements}}',
+            CraftTable::ELEMENTS,
             'id',
             'CASCADE',
             null
@@ -175,8 +264,8 @@ class Install extends Migration
      */
     public function dropForeignKeys(): void
     {
-        if ($this->db->tableExists(Table::COMPANY)) {
-            Db::dropAllForeignKeysToTable(Table::COMPANY);
+        if ($this->db->tableExists(TABLE::COMPANIES)) {
+            Db::dropAllForeignKeysToTable(TABLE::COMPANIES);
         }
 
         if ($this->db->tableExists(Table::CONTACTS)) {
@@ -193,8 +282,8 @@ class Install extends Migration
      */
     public function dropTables(): void
     {
-        if (Craft::$app->db->schema->getTableSchema(Table::COMPANY)) {
-            $this->dropTable(Table::COMPANY);
+        if (Craft::$app->db->schema->getTableSchema(TABLE::COMPANIES)) {
+            $this->dropTable(TABLE::COMPANIES);
         }
 
         if (Craft::$app->db->schema->getTableSchema(Table::CONTACTS)) {

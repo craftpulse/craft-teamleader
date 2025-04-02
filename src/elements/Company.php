@@ -32,39 +32,14 @@ class Company extends Element
 
     // Constant Properties
     // =========================================================================
-    /**
-     * @var bool|null
-     */
     public ?bool $marketingMailsConsent = false;
-    /**
-     * @var string|null
-     */
     public ?string $nationalIdentificationNumber = null;
-    /**
-     * @var string|null
-     */
     public ?string $vatNumber = null;
-    /**
-     * @var string|null
-     */
     public ?string $website = null;
-    /**
-     * @var array
-     */
-    public array|string $emails = [];
-    /**
-     * @var array
-     */
-    public array|string $telephones = [];
     public array|string $addresses = [];
-    /**
-     * @var string
-     */
+    public array|string $emails = [];
+    public array|string $telephones = [];
     public string $name = '';
-
-    /**
-     * @var null|FieldLayout Field layout
-     */
     private ?FieldLayout $fieldLayout = null;
 
 

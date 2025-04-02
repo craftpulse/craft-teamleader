@@ -30,6 +30,6 @@ class CompanyRecord extends ActiveRecord
 {
     public static function tableName(): string
     {
-        return Table::COMPANY;
+        return TABLE::COMPANIES;
     }
 }

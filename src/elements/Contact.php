@@ -8,6 +8,7 @@ use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\helpers\UrlHelper;
+use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
 use craftpulse\teamleader\elements\conditions\ContactCondition;
 use craftpulse\teamleader\elements\db\ContactQuery;
@@ -18,6 +19,22 @@ use yii\web\Response;
  */
 class Contact extends Element
 {
+    // Constant Properties
+    // =========================================================================
+    public ?bool $marketingMailsConsent = false;
+    public ?int $companyId = null;
+    public ?string $firstName = null;
+    public ?string $language = null;
+    public ?string $lastName = null;
+    public ?string $salutation = null;
+    public array|string $addresses = [];
+    public array|string $emails = [];
+    public array|string $telephones = [];
+
+    private ?FieldLayout $fieldLayout = null;
+
+    // Public Static Methods
+    // =========================================================================
     public static function displayName(): string
     {
         return Craft::t('teamleader-focus', 'Contact');
@@ -78,6 +95,8 @@ class Contact extends Element
         return Craft::createObject(ContactCondition::class, [static::class]);
     }
 
+    // Protected Static Methods
+    // =========================================================================
     protected static function defineSources(string $context): array
     {
         return [
@@ -149,17 +168,24 @@ class Contact extends Element
         ];
     }
 
+    // Protected Methods
+    // =========================================================================
     protected function defineRules(): array
     {
-        return array_merge(parent::defineRules(), [
-            // ...
-        ]);
-    }
+        $rules = parent::defineRules();
 
-    public function getUriFormat(): ?string
-    {
-        // If contacts should have URLs, define their URI format here
-        return null;
+        $rules[] = [[
+            'addresses',
+            'emails',
+            'firstName',
+            'language',
+            'lastName',
+            'marketingMailsConsent',
+            'salutation',
+            'telephones',
+        ], 'safe'];
+
+        return $rules;
     }
 
     protected function previewTargets(): array
@@ -187,6 +213,19 @@ class Contact extends Element
                 'variables' => ['contact' => $this],
             ]
         ];
+    }
+
+    protected function cpEditUrl(): ?string
+    {
+        return sprintf('teamleader-focus/contacts/%s', $this->getCanonicalId());
+    }
+
+    // Public Methods
+    // =========================================================================
+    public function getUriFormat(): ?string
+    {
+        // If contacts should have URLs, define their URI format here
+        return null;
     }
 
     public function canView(User $user): bool
@@ -246,14 +285,9 @@ class Contact extends Element
         return true;
     }
 
-    protected function cpEditUrl(): ?string
-    {
-        return sprintf('contacts/%s', $this->getCanonicalId());
-    }
-
     public function getPostEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('contacts');
+        return UrlHelper::cpUrl('teamleader-focus/contacts');
     }
 
     public function prepareEditScreen(Response $response, string $containerId): void
@@ -262,7 +296,7 @@ class Contact extends Element
         $response->crumbs([
             [
                 'label' => self::pluralDisplayName(),
-                'url' => UrlHelper::cpUrl('contacts'),
+                'url' => UrlHelper::cpUrl('teamleader-focus/contacts'),
             ],
         ]);
     }
