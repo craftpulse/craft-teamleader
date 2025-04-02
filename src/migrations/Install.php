@@ -1,6 +1,6 @@
 <?php
 
-namespace craft\teamleader\migrations;
+namespace craftpulse\teamleader\migrations;
 
 use Craft;
 use craft\db\Migration;
@@ -12,6 +12,7 @@ use craftpulse\teamleader\elements\Company as CompanyElement;
 use craftpulse\teamleader\elements\Contact as ContactElement;
 use craftpulse\teamleader\elements\Deal as DealElement;
 
+use craftpulse\teamleader\records\CompanyRecord;
 use Exception;
 use Throwable;
 use verbb\auth\Auth;

@@ -201,6 +201,13 @@ class Teamleader extends Plugin {
             ];
         }
 
+        if ($currentUser->can('teamleader-focus:view-contacts')) {
+            $subNavs['contacts'] = [
+                'label' => Craft::t('teamleader-focus', 'Contacts'),
+                'url' => 'teamleader-focus/contacts',
+            ];
+        }
+
         if ($currentUser->can('teamleader-focus:settings') && $editableSettings) {
             $subNavs['settings'] = [
                 'label' => 'Settings',
