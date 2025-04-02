@@ -36,11 +36,11 @@ class Company extends Element
     public ?string $nationalIdentificationNumber = null;
     public ?string $vatNumber = null;
     public ?string $website = null;
-    public array|string $addresses = [];
     public array|string $emails = [];
     public array|string $telephones = [];
     public string $name = '';
     private ?FieldLayout $fieldLayout = null;
+    private ?int $teamleaderId = null;
 
 
     // Public Static Methods
@@ -499,6 +499,10 @@ class Company extends Element
     public function getArray($handle): array
     {
         if ($this[$handle]) {
+            $data = Json::decode($this[$handle]);
+
+            if ($data == '') return [];
+
             return Json::decode($this[$handle]);
         }
 
