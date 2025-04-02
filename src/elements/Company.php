@@ -35,7 +35,7 @@ class Company extends Element
     /**
      * @var bool|null
      */
-    public ?bool $marketingMailsConsent = null;
+    public ?bool $marketingMailsConsent = false;
     /**
      * @var string|null
      */
@@ -51,12 +51,12 @@ class Company extends Element
     /**
      * @var array
      */
-    public array $emails = [];
+    public array|string $emails = [];
     /**
      * @var array
      */
-    public array $telephones = [];
-    public ElementCollection $addresses;
+    public array|string $telephones = [];
+    public array|string $addresses = [];
     /**
      * @var string
      */
@@ -238,6 +238,7 @@ class Company extends Element
         return [
             'slug' => ['label' => Craft::t('app', 'Slug')],
             'id' => ['label' => Craft::t('app', 'ID')],
+            'vatNumber' => ['label' => Craft::t('teamleader-focus', 'VAT Number')],
             'uid' => ['label' => Craft::t('app', 'UID')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -264,9 +265,11 @@ class Company extends Element
      */
     protected function defineRules(): array
     {
-        return array_merge(parent::defineRules(), [
-            // ...
-        ]);
+        $rules = parent::defineRules();
+
+        $rules[] = [['vatNumber', 'nationalIdentificationNumber', 'emails', 'telephones', 'addresses', 'marketingMailsConsent', 'website'], 'safe'];
+
+        return $rules;
     }
 
     protected function cpEditUrl(): ?string
@@ -324,12 +327,19 @@ class Company extends Element
             }
 
             $companyRecord->fieldLayoutId = $this->fieldLayout->id;
+
+            //fields
+//            $companyRecord->addresses = $this->addresses;
+            $companyRecord->emails = $this->emails;
+            $companyRecord->marketingMailsConsent = $this->marketingMailsConsent;
             $companyRecord->name = $this->title;
+            $companyRecord->nationalIdentificationNumber = $this->nationalIdentificationNumber;
+            $companyRecord->telephones = $this->telephones;
+            $companyRecord->vatNumber = $this->vatNumber;
+            $companyRecord->website = $this->website;
 
             $companyRecord->save(false);
         }
-
-        //Craft::dd($this->emails);
 
         parent::afterSave($isNew);
     }
@@ -341,18 +351,7 @@ class Company extends Element
      */
     public function getAddresses(): ElementCollection
     {
-        if (!isset($this->addresses)) {
-            if (!$this->id) {
-                /** @var ElementCollection */
-                return ElementCollection::make();
-            }
-
-            $this->addresses = $this->createAddressQuery()
-                ->andWhere(['fieldId' => null])
-                ->collect();
-        }
-
-        return $this->addresses;
+        return $this->createAddressQuery()->collect();
     }
 
     /**
@@ -368,6 +367,23 @@ class Company extends Element
         $this->fieldLayout = Craft::$app->getFields()->getLayoutByType(self::class);
 
         return $this->fieldLayout;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function afterValidate(): void
+    {
+//        $scenario = $this->getScenario();
+//
+//        if ($scenario === self::SCENARIO_LIVE) {
+//            $companyElements = $this->getFieldLayout()->getAllElements();
+//            foreach ($companyElements as $companyElement) {
+//                if ($companyElements->required) {
+//                    (new RequiredValidator())->validateAttribute($this, $companyElements->attribute);
+//                }
+//            }
+//        }
     }
 
     public function getPostEditUrl(): ?string
@@ -392,8 +408,8 @@ class Company extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-        $this->emails = !empty($this->emails) ? Json::encode($this->emails) : [];
-        $this->telephones = !empty($this->telephones) ? Json::encode($this->telephones) : [];
+//        $this->emails = !empty($this->emails) ? Json::encode($this->emails) : [];
+//        $this->telephones = !empty($this->telephones) ? Json::encode($this->telephones) : [];
 
         return parent::beforeSave($isNew);
     }
@@ -401,9 +417,9 @@ class Company extends Element
     /**
      * @return void
      */
-    public function afterFind(): void
+    public function afterPopulate(): void
     {
-        $this->addresses = new ElementCollection();
+        $this->addresses = $this->getAddresses();
 
         $this->emails = $this->emails ?: [];
         $this->telephones = $this->telephones ?: [];
@@ -505,13 +521,22 @@ class Company extends Element
         return $user->can('teamleader-focus:delete-companies');
     }
 
+    public function getArray($handle): array
+    {
+        if ($this[$handle]) {
+            return Json::decode($this[$handle]);
+        }
+
+        return [];
+    }
+
     // Private Methods
     // =========================================================================
     private function createAddressQuery(): AddressQuery
     {
         // @TODO: add owner to only get current elements
-        return Address::find()
 //            ->owner($this)
+        return Address::find()
             ->orderBy(['id' => SORT_ASC]);
     }
 

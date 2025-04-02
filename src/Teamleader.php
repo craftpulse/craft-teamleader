@@ -63,17 +63,17 @@ class Teamleader extends Plugin {
     /**
      * Lite
      */
-    public const string EDITION_LITE = 'lite';
+    public const EDITION_LITE = 'lite';
 
     /**
      * Plus
      */
-    public const string EDITION_PLUS = 'plus';
+    public const EDITION_PLUS = 'plus';
 
     /**
      * Pro
      */
-    public const string EDITION_PRO = 'pro';
+    public const EDITION_PRO = 'pro';
 
     // Static Properties
     // =========================================================================
