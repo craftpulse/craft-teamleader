@@ -8,6 +8,12 @@
 
 namespace craftpulse\teamleader\services;
 
+use Craft;
+use craft\log\MonologTarget;
+
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
+
 use yii\base\InvalidConfigException;
 
 /**
@@ -132,5 +138,4 @@ trait ServicesTrait
     {
         return $this->get('providers');
     }
-
 }

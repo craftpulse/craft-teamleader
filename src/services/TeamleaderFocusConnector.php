@@ -2,10 +2,13 @@
 
 namespace craftpulse\teamleader\services;
 
+use Craft;
 use craft\base\Element;
+use craftpulse\teamleader\auth\providers\TeamleaderFocus as TeamleaderFocusProvider;
 use yii\base\Component;
 
 use verbb\auth\base\OAuthProviderTrait;
+use verbb\auth\base\OAuthProviderInterface;
 
 /**
  * Class TeamleaderFocusConnector
@@ -15,7 +18,7 @@ use verbb\auth\base\OAuthProviderTrait;
  * @since       5.0.0
  *
  */
-class TeamleaderFocusConnector extends Component
+class TeamleaderFocusConnector extends Component implements OAuthProviderInterface
 {
     // Traits
     // =========================================================================
@@ -38,8 +41,18 @@ class TeamleaderFocusConnector extends Component
     public function deliverPayload(Element $element, string $endpoint, mixed $payload, string $method = 'POST', string $contentType = 'json'): mixed
     {
         // Return a JSON response from the provider
-        return $this->OAuthRequest($method, $endpoint, [
+        return $this->request($method, $endpoint, [
             $contentType => $payload,
         ]);
+    }
+
+    public static function getOAuthProviderClass(): string
+    {
+        return TeamleaderFocusProvider::class;
+    }
+
+    public static function supportsOAuthConnection(): bool
+    {
+        return true;
     }
 }

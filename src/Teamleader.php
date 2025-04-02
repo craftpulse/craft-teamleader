@@ -33,8 +33,10 @@ use craftpulse\teamleader\elements\Deal;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
 use craftpulse\teamleader\services\ServicesTrait;
+
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
+
 use yii\base\Event;
 use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;

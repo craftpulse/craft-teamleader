@@ -35,7 +35,6 @@ class AuthController extends controller
 
     protected array|int|bool $allowAnonymous = ['connect', 'callback'];
 
-
     // Public Methods
     // =========================================================================
 

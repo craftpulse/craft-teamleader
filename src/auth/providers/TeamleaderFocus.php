@@ -21,7 +21,6 @@ class TeamleaderFocus extends TeamleaderFocusClient
 
     use ProviderTrait;
 
-
     // Public Methods
     // =========================================================================
 

@@ -14,9 +14,12 @@ use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
+
+use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
 use craftpulse\teamleader\records\CompanyRecord;
+
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
@@ -342,6 +345,14 @@ class Company extends Element
         }
 
         parent::afterSave($isNew);
+
+        $payload = [
+            'context' => 'companies',
+            'name' => $this->title,
+            'telephones' => $this->telephones,
+        ];
+
+        Teamleader::$plugin->teamleaderConnector->deliverPayload($this, 'companies.add', $payload);
     }
 
     /**
