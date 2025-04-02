@@ -7,7 +7,6 @@ use craft\db\Migration;
 use craft\helpers\Db;
 
 use craftpulse\teamleader\db\Table;
-use craftpulse\teamleader\records\CompanyRecord;
 
 use Exception;
 use Throwable;
@@ -67,7 +66,7 @@ class m250331_132339_create_teamleader_focus_company extends Migration
      */
     protected function createTables(): bool
     {
-        if(!$this->db->tableExists(CompanyRecord::tableName())) {
+        if(!$this->db->tableExists(Table::COMPANY)) {
             $this->createTable(
                 Table::COMPANY,
                 [
@@ -89,6 +88,36 @@ class m250331_132339_create_teamleader_focus_company extends Migration
             );
         }
 
+        if(!$this->db->tableExists(Table::CONTACTS)) {
+            $this->createTable(
+                Table::CONTACTS,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // data
+                ]
+            );
+        }
+
+        if(!$this->db->tableExists(Table::DEALS)) {
+            $this->createTable(
+                Table::DEALS,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // data
+                ]
+            );
+        }
+
         return true;
     }
 
@@ -106,6 +135,26 @@ class m250331_132339_create_teamleader_focus_company extends Migration
             'CASCADE',
             null
         );
+
+        $this->addForeignKey(
+            null,
+            Table::CONTACTS,
+            'id',
+            '{{%elements}}',
+            'id',
+            'CASCADE',
+            null
+        );
+
+        $this->addForeignKey(
+            null,
+            Table::DEALS,
+            'id',
+            '{{%elements}}',
+            'id',
+            'CASCADE',
+            null
+        );
     }
 
     /**
@@ -116,6 +165,14 @@ class m250331_132339_create_teamleader_focus_company extends Migration
         if ($this->db->tableExists(Table::COMPANY)) {
             Db::dropAllForeignKeysToTable(Table::COMPANY);
         }
+
+        if ($this->db->tableExists(Table::CONTACTS)) {
+            Db::dropAllForeignKeysToTable(Table::CONTACTS);
+        }
+
+        if ($this->db->tableExists(Table::DEALS)) {
+            Db::dropAllForeignKeysToTable(Table::DEALS);
+        }
     }
 
     /**
@@ -125,6 +182,14 @@ class m250331_132339_create_teamleader_focus_company extends Migration
     {
         if (Craft::$app->db->schema->getTableSchema(Table::COMPANY)) {
             $this->dropTable(Table::COMPANY);
+        }
+
+        if (Craft::$app->db->schema->getTableSchema(Table::CONTACTS)) {
+            $this->dropTable(Table::CONTACTS);
+        }
+
+        if (Craft::$app->db->schema->getTableSchema(Table::DEALS)) {
+            $this->dropTable(Table::DEALS);
         }
     }
 }

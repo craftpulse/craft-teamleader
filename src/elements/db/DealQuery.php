@@ -7,14 +7,14 @@ use craft\elements\db\ElementQuery;
 use craftpulse\teamleader\db\Table;
 
 /**
- * Company query
+ * Deal query
  */
-class CompanyQuery extends ElementQuery
+class DealQuery extends ElementQuery
 {
     protected function beforePrepare(): bool
     {
-        // todo: join the `companies` table
-         $this->joinElementTable(Table::COMPANY);
+        // todo: join the `deals` table
+        $this->joinElementTable(Table::DEALS);
 
         // todo: apply any custom query params
         // ...

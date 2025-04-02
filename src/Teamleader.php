@@ -11,6 +11,9 @@
 namespace craftpulse\teamleader;
 
 use Craft;
+use Monolog\Formatter\LineFormatter;
+use Psr\Log\LogLevel;
+use Throwable;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\User;
@@ -24,18 +27,14 @@ use craft\models\FieldLayout;
 use craft\services\Elements;
 use craft\services\UserPermissions;
 use craft\web\UrlManager;
-
 use craftpulse\teamleader\elements\Company;
+use craftpulse\teamleader\elements\Contact;
+use craftpulse\teamleader\elements\Deal;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
 use craftpulse\teamleader\services\ServicesTrait;
-
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
-
-use Monolog\Formatter\LineFormatter;
-use Psr\Log\LogLevel;
-use Throwable;
 use yii\base\Event;
 use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;
@@ -63,17 +62,17 @@ class Teamleader extends Plugin {
     /**
      * Lite
      */
-    public const string EDITION_LITE = 'lite';
+    public const EDITION_LITE = 'lite';
 
     /**
      * Plus
      */
-    public const string EDITION_PLUS = 'plus';
+    public const EDITION_PLUS = 'plus';
 
     /**
      * Pro
      */
-    public const string EDITION_PRO = 'pro';
+    public const EDITION_PRO = 'pro';
 
     // Static Properties
     // =========================================================================
@@ -126,11 +125,6 @@ class Teamleader extends Plugin {
         parent::init();
         self::$plugin = $this;
 
-        if ($this->getIsPlus() || $this->getIsPro()) {
-            $this->hasCpSettings = true;
-            $this->hasCpSection = true;
-        }
-
         // Register custom log target
         $this->_registerLogTarget();
 
@@ -144,19 +138,23 @@ class Teamleader extends Plugin {
             $this->_registerFormieEventHandlers();
         }
 
-        // Register custom elements
-        // @TODO: offload this into $this->_registerElements();
-        Event::on(Elements::class, Elements::EVENT_REGISTER_ELEMENT_TYPES, function (RegisterComponentTypesEvent $event) {
-            $event->types[] = Company::class;
-        });
+        if ($this->getIsPlus() || $this->getIsPro()) {
+            $this->hasCpSettings = true;
+            $this->hasCpSection = true;
 
-        // Register control panel events
-        if (Craft::$app->getRequest()->getIsCpRequest()) {
-            if ($this->getIsPlus() || $this->getIsPro()) {
+            // Register control panel events
+            if (Craft::$app->getRequest()->getIsCpRequest()) {
                 $this->_registerCpUrlRules();
                 $this->_registerFieldLayout();
             }
+
+            // Permissions
+            $this->_registerUserPermissions();
+
+            // Elements
+            $this->_registerElements();
         }
+
 
         // Run all the migrations after install
 //        Event::on(
@@ -168,11 +166,6 @@ class Teamleader extends Plugin {
 //                }
 //            }
 //        );
-
-
-
-        // Permissions
-        $this->_registerUserPermissions();
     }
 
     /**
@@ -313,6 +306,10 @@ class Teamleader extends Plugin {
                         'teamleader-focus' => ['template' => 'teamleader-focus/companies/_index.twig'],
                         'teamleader-focus/companies' => ['template' => 'teamleader-focus/companies/_index.twig'],
                         'teamleader-focus/companies/<elementId:\d+>' => 'elements/edit',
+                        'teamleader-focus/contacts' => ['template' => 'teamleader-focus/contacts/_index.twig'],
+                        'teamleader-focus/contacts/<elementId:\d+>' => 'elements/edit',
+                        'teamleader-focus/deals' => ['template' => 'teamleader-focus/deals/_index.twig'],
+                        'teamleader-focus/deals/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/settings' => 'teamleader-focus/settings/edit',
                         'teamleader-focus/teamleader-focus' => 'teamleader-focus/settings/edit',
                     ],
@@ -322,6 +319,27 @@ class Teamleader extends Plugin {
         );
     }
 
+    /**
+     * Registers our custom elements
+     *
+     * @return void
+     */
+    private function _registerElements(): void
+    {
+        Event::on(Elements::class,
+            Elements::EVENT_REGISTER_ELEMENT_TYPES,
+            function (RegisterComponentTypesEvent $event) {
+                $event->types[] = Company::class;
+                $event->types[] = Contact::class;
+                $event->types[] = Deal::class;
+            });
+    }
+
+    /**
+     * Registers custom FieldLayouts
+     *
+     * @return void
+     */
     private function _registerFieldLayout(): void
     {
         Event::on(
@@ -331,19 +349,39 @@ class Teamleader extends Plugin {
                 /** @var FieldLayout $fieldLayout */
                 $fieldLayout = $event->sender;
 
-                // We only want to provide these options for our route field layouts:
-                if ($fieldLayout->type == Company::class) {
+                // We only want to provide these options for our company field layouts:
+                if ($fieldLayout->type === Company::class) {
                     // Add our custom fields
                     foreach ($this->getCompanies()->createFields() as $field)
                     {
                         $event->fields[] = $field;
                     }
                 }
+
+                if ($fieldLayout->type === Contact::class) {
+                    // Add our custom fields
+                    /*foreach ($this->getContacts()->createFields() as $field)
+                    {
+                        $event->fields[] = $field;
+                    }*/
+                }
+
+                if ($fieldLayout->type === Deal::class) {
+                    // Add our custom fields
+                    /*foreach ($this->getDeals()->createFields() as $field)
+                    {
+                        $event->fields[] = $field;
+                    }*/
+                }
             }
         );
     }
 
-
+    /**
+     * Registers Formie Event Handlers
+     *
+     * @return void
+     */
     private function _registerFormieEventHandlers(): void {
         Event::on(
             Integrations::class,
@@ -356,6 +394,8 @@ class Teamleader extends Plugin {
 
     /**
      * Registers user permissions
+     *
+     * @return void
      */
     private function _registerUserPermissions(): void
     {
@@ -372,6 +412,24 @@ class Teamleader extends Plugin {
                         ],
                         'teamleader-focus:delete-companies' => [
                             'label' => Craft::t('teamleader-focus', 'Delete companies'),
+                        ],
+                        'teamleader-focus:view-contacts' => [
+                            'label' => Craft::t('teamleader-focus', 'View contacts'),
+                        ],
+                        'teamleader-focus:save-contacts' => [
+                            'label' => Craft::t('teamleader-focus', 'Edit/Save contacts'),
+                        ],
+                        'teamleader-focus:delete-contacts' => [
+                            'label' => Craft::t('teamleader-focus', 'Delete contacts'),
+                        ],
+                        'teamleader-focus:view-deals' => [
+                            'label' => Craft::t('teamleader-focus', 'View deals'),
+                        ],
+                        'teamleader-focus:save-deals' => [
+                            'label' => Craft::t('teamleader-focus', 'Edit/Save deals'),
+                        ],
+                        'teamleader-focus:delete-deals' => [
+                            'label' => Craft::t('teamleader-focus', 'Delete deals'),
                         ],
                         'teamleader-focus:settings' => [
                             'label' => Craft::t('teamleader-focus', 'Access settings'),

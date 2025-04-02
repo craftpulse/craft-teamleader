@@ -7,7 +7,7 @@ use craft\db\ActiveRecord;
 use craftpulse\teamleader\db\Table;
 
 /**
- * Class CompanyRecord
+ * Class ContactRecord
  *
  * @author      CraftPulse
  * @package     Teamleader
@@ -15,21 +15,14 @@ use craftpulse\teamleader\db\Table;
  *
  * @property string $dateCreated Date created
  * @property string $dateUpdated Date updated
- * @property array|null $emails Emails
  * @property int $id ID
- * @property int|null $marketing_mails_consent Marketing mails consent
- * @property string $name Name
- * @property string|null $national_identification_number National identification number
- * @property array|null $telephones Telephones
  * @property string $uid Uid
- * @property string|null $vat_number Vat number
- * @property string|null $website Website
  * @property int|mixed|null $fieldLayoutId
  */
-class CompanyRecord extends ActiveRecord
+class ContactRecord extends ActiveRecord
 {
     public static function tableName(): string
     {
-        return Table::COMPANY;
+        return Table::CONTACTS;
     }
 }

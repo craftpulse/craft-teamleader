@@ -44,6 +44,28 @@ trait ServicesTrait
     }
 
     /**
+     * Returns the contacts service
+     *
+     * @return Contacts The contacts service
+     * @throws InvalidConfigException
+     */
+    public function getContacts(): Contacts
+    {
+        return $this->get('contacts');
+    }
+
+    /**
+     * Returns the deals service
+     *
+     * @return Deals The deals service
+     * @throws InvalidConfigException
+     */
+    public function getDeals(): Deals
+    {
+        return $this->get('deals');
+    }
+
+    /**
      * Returns the companies service
      *
      * @return Providers The companies service

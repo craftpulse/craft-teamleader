@@ -9,7 +9,8 @@ use craft\helpers\Db;
 
 use craftpulse\teamleader\db\Table;
 use craftpulse\teamleader\elements\Company as CompanyElement;
-use craftpulse\teamleader\records\CompanyRecord;
+use craftpulse\teamleader\elements\Contact as ContactElement;
+use craftpulse\teamleader\elements\Deal as DealElement;
 
 use Exception;
 use Throwable;
@@ -43,7 +44,7 @@ class Install extends Migration
 
         if ($this->createTables()) {
             $this->addForeignKeys();
-            $this->addFieldLayout();
+            //$this->addFieldLayouts();
 
             // Refresh the db schema caches
             Craft::$app->db->schema->refresh();
@@ -60,6 +61,8 @@ class Install extends Migration
         $this->dropForeignKeys();
         $this->dropTables();
         Craft::$app->getFields()->deleteLayoutsByType(CompanyElement::class);
+        Craft::$app->getFields()->deleteLayoutsByType(ContactElement::class);
+        Craft::$app->getFields()->deleteLayoutsByType(DealElement::class);
 
         return true;
     }
@@ -97,6 +100,36 @@ class Install extends Migration
             );
         }
 
+        if(!$this->db->tableExists(Table::CONTACTS)) {
+            $this->createTable(
+                Table::CONTACTS,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // data
+                ]
+            );
+        }
+
+        if(!$this->db->tableExists(Table::DEALS)) {
+            $this->createTable(
+                Table::DEALS,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // data
+                ]
+            );
+        }
+
         return true;
     }
 
@@ -114,19 +147,26 @@ class Install extends Migration
             'CASCADE',
             null
         );
-    }
 
-    public function addFieldLayout(): void
-    {
-//        $fieldLayout = Craft::$app->getFields()->getLayoutByType(RouteElement::class) ?? new FieldLayout();
-//
-//        $tab = new FieldLayoutTab(['name' => 'Route']);
-//        $tab->setLayout($fieldLayout);
-//
-//        $tab->setElements(Shortlink::$plugin->routes->createFields());
-//        $fieldLayout->setTabs([$tab]);
-//
-//        Craft::$app->getFields()->saveLayout($fieldLayout);
+        $this->addForeignKey(
+            null,
+            Table::CONTACTS,
+            'id',
+            '{{%elements}}',
+            'id',
+            'CASCADE',
+            null
+        );
+
+        $this->addForeignKey(
+            null,
+            Table::DEALS,
+            'id',
+            '{{%elements}}',
+            'id',
+            'CASCADE',
+            null
+        );
     }
 
     /**
@@ -137,6 +177,14 @@ class Install extends Migration
         if ($this->db->tableExists(Table::COMPANY)) {
             Db::dropAllForeignKeysToTable(Table::COMPANY);
         }
+
+        if ($this->db->tableExists(Table::CONTACTS)) {
+            Db::dropAllForeignKeysToTable(Table::CONTACTS);
+        }
+
+        if ($this->db->tableExists(Table::DEALS)) {
+            Db::dropAllForeignKeysToTable(Table::DEALS);
+        }
     }
 
     /**
@@ -146,6 +194,14 @@ class Install extends Migration
     {
         if (Craft::$app->db->schema->getTableSchema(Table::COMPANY)) {
             $this->dropTable(Table::COMPANY);
+        }
+
+        if (Craft::$app->db->schema->getTableSchema(Table::CONTACTS)) {
+            $this->dropTable(Table::CONTACTS);
+        }
+
+        if (Craft::$app->db->schema->getTableSchema(Table::DEALS)) {
+            $this->dropTable(Table::DEALS);
         }
     }
 }

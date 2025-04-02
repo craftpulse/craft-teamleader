@@ -2,12 +2,11 @@
 
 namespace craftpulse\teamleader\models;
 
-use Craft;
 use craft\base\Model;
 use craft\behaviors\EnvAttributeParserBehavior;
 
 /**
- * Class Token
+ * Class SettingsModel
  *
  * @author      CraftPulse
  * @package     Teamleader
