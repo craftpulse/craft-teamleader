@@ -89,6 +89,9 @@ class Install extends Migration
                     'uid' => $this->uid(),
                     'fieldLayoutId' => $this->integer(),
 
+                    // connectors
+                    'teamleaderId' => $this->integer(),
+
                     // data
                     'emails' => $this->json(),
                     'marketingMailsConsent' => $this->boolean(),
@@ -109,7 +112,6 @@ class Install extends Migration
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
-                    'fieldLayoutId' => $this->integer(),
 
                     //foreign keys
                     'addressId' => $this->integer(),
@@ -128,7 +130,18 @@ class Install extends Migration
                     'uid' => $this->uid(),
                     'fieldLayoutId' => $this->integer(),
 
+                    // connectors
+                    'teamleaderId' => $this->integer(),
+
                     // data
+                    'emails' => $this->json(),
+                    'firstName' => $this->string()->notNull(),
+                    'lastName' => $this->string()->notNull(),
+                    'marketingMailsConsent' => $this->boolean(),
+                    'nationalIdentificationNumber' => $this->string(),
+                    'salutation' => $this->string(),
+                    'language' => $this->string(),
+                    'telephones' => $this->json(),
                 ]
             );
         }
@@ -141,7 +154,6 @@ class Install extends Migration
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
-                    'fieldLayoutId' => $this->integer(),
 
                     //foreign keys
                     'companyId' => $this->integer(),
@@ -159,6 +171,9 @@ class Install extends Migration
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
                     'fieldLayoutId' => $this->integer(),
+
+                    // connectors
+                    'teamleaderId' => $this->integer(),
 
                     // data
 
@@ -268,8 +283,16 @@ class Install extends Migration
             Db::dropAllForeignKeysToTable(TABLE::COMPANIES);
         }
 
+        if ($this->db->tableExists(TABLE::COMPANIES_ADDRESSES)) {
+            Db::dropAllForeignKeysToTable(TABLE::COMPANIES_ADDRESSES);
+        }
+
         if ($this->db->tableExists(Table::CONTACTS)) {
             Db::dropAllForeignKeysToTable(Table::CONTACTS);
+        }
+
+        if ($this->db->tableExists(Table::CONTACTS_COMPANIES)) {
+            Db::dropAllForeignKeysToTable(Table::CONTACTS_COMPANIES);
         }
 
         if ($this->db->tableExists(Table::DEALS)) {
@@ -286,8 +309,16 @@ class Install extends Migration
             $this->dropTable(TABLE::COMPANIES);
         }
 
+        if (Craft::$app->db->schema->getTableSchema(TABLE::COMPANIES_ADDRESSES)) {
+            $this->dropTable(TABLE::COMPANIES_ADDRESSES);
+        }
+
         if (Craft::$app->db->schema->getTableSchema(Table::CONTACTS)) {
             $this->dropTable(Table::CONTACTS);
+        }
+
+        if (Craft::$app->db->schema->getTableSchema(Table::CONTACTS_COMPANIES)) {
+            $this->dropTable(Table::CONTACTS_COMPANIES);
         }
 
         if (Craft::$app->db->schema->getTableSchema(Table::DEALS)) {

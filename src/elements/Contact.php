@@ -22,16 +22,15 @@ class Contact extends Element
     // Constant Properties
     // =========================================================================
     public ?bool $marketingMailsConsent = false;
-    public ?int $companyId = null;
     public ?string $firstName = null;
     public ?string $language = null;
     public ?string $lastName = null;
     public ?string $salutation = null;
-    public array|string $addresses = [];
     public array|string $emails = [];
     public array|string $telephones = [];
 
     private ?FieldLayout $fieldLayout = null;
+    private ?int $teamleaderId = null;
 
     // Public Static Methods
     // =========================================================================
