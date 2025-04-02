@@ -4,8 +4,6 @@ namespace craftpulse\teamleader\services;
 
 use Craft;
 use craft\fieldlayoutelements\TextField;
-use craft\fields\Addresses;
-use craft\fields\Table;
 
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
 use craftpulse\teamleader\fieldlayoutelements\LightswitchField;
