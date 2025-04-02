@@ -79,11 +79,11 @@ class m250331_132339_create_teamleader_focus_company extends Migration
 
                     // data
                     'emails' => $this->json(),
-                    'marketing_mails_consent' => $this->boolean(),
+                    'marketingMailsConsent' => $this->boolean(),
                     'name' => $this->string()->notNull(),
-                    'national_identification_number' => $this->string(),
+                    'nationalIdentificationNumber' => $this->string(),
                     'telephones' => $this->json(),
-                    'vat_number' => $this->string(),
+                    'vatNumber' => $this->string(),
                     'website' => $this->string(),
                 ]
             );

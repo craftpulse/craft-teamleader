@@ -8,6 +8,7 @@ use craft\fields\Addresses;
 use craft\fields\Table;
 
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
+use craftpulse\teamleader\fieldlayoutelements\LightswitchField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
 
 use yii\base\Component;
@@ -36,8 +37,8 @@ class Companies extends Component
                 'width' => '100%',
             ], [
                 'class' => TextField::class,
-                'attribute' => 'vat_number',
-                'name' => 'vat_number',
+                'attribute' => 'vatNumber',
+                'name' => 'vatNumber',
                 'label' => Craft::t('teamleader-focus', 'VAT Number'),
                 'inputType' => 'text',
                 'mandatory' => true,
@@ -45,8 +46,8 @@ class Companies extends Component
                 'width' => '50%',
             ], [
                 'class' => TextField::class,
-                'attribute' => 'national_identification_number',
-                'name' => 'national_identification_number',
+                'attribute' => 'nationalIdentificationNumber',
+                'name' => 'nationalIdentificationNumber',
                 'label' => Craft::t('teamleader-focus', 'National Identification Number'),
                 'inputType' => 'text',
                 'mandatory' => true,
@@ -58,7 +59,7 @@ class Companies extends Component
                 'name' => 'emails',
                 'label' => Craft::t('teamleader-focus', 'Emails'),
                 'required' => false,
-                'width' => '100%',
+                'width' => '50%',
                 'columns' => [
                     'type' => [
                         'heading' => Craft::t('teamleader-focus', 'Type'),
@@ -80,11 +81,56 @@ class Companies extends Component
                     ],
                 ],
             ], [
+                'class' => TableField::class,
+                'attribute' => 'telephones',
+                'name' => 'telephones',
+                'label' => Craft::t('teamleader-focus', 'Telephones'),
+                'required' => false,
+                'width' => '50%',
+                'columns' => [
+                    'type' => [
+                        'heading' => Craft::t('teamleader-focus', 'Type'),
+                        'type' => 'select',
+                        'options' => [
+                            [
+                                'label' => Craft::t('teamleader-focus', 'Phone'),
+                                'value' => 'phone',
+                            ],
+                            [
+                                'label' => Craft::t('teamleader-focus', 'Fax'),
+                                'value' => 'fax',
+                            ]
+                        ],
+                    ],
+                    'number' => [
+                        'heading' => Craft::t('teamleader-focus', 'Telephone'),
+                        'type' => 'number',
+                    ],
+                ],
+            ], [
                 'class' => AddressField::class,
                 'field' => 'addresses',
-                'attribute' => 'address',
+                'attribute' => 'addresses',
                 'name' => 'addresses',
                 'label' => Craft::t('teamleader-focus', 'Addresses'),
+                'required' => false,
+                'width' => '100%',
+            ], [
+                'class' => TextField::class,
+                'attribute' => 'website',
+                'name' => 'website',
+                'label' => Craft::t('teamleader-focus', 'Website'),
+                'inputType' => 'text',
+                'mandatory' => true,
+                'required' => false,
+                'width' => '100%',
+            ], [
+                'class' => LightswitchField::class,
+                'attribute' => 'marketingMailsConsent',
+                'name' => 'marketingMailsConsent',
+                'label' => Craft::t('teamleader-focus', 'Marketing Mails Consent'),
+                'instructions' => Craft::t('teamleader-focus', 'Subscribe for marketing emails'),
+                'mandatory' => true,
                 'required' => false,
                 'width' => '100%',
             ]

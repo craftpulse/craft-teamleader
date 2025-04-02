@@ -13,12 +13,12 @@ use craftpulse\teamleader\db\Table;
  * @property string $dateUpdated Date updated
  * @property array|null $emails Emails
  * @property int $id ID
- * @property int|null $marketing_mails_consent Marketing mails consent
+ * @property int|null $marketingMailsConsent Marketing mails consent
  * @property string $name Name
- * @property string|null $national_identification_number National identification number
+ * @property string|null $nationalIdentificationNumber National identification number
  * @property array|null $telephones Telephones
  * @property string $uid Uid
- * @property string|null $vat_number Vat number
+ * @property string|null $vatNumber Vat number
  * @property string|null $website Website
  * @property int|mixed|null $fieldLayoutId
  */

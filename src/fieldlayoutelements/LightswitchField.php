@@ -13,7 +13,7 @@ use craft\web\assets\timepicker\TimepickerAsset;
 use craftpulse\teamleader\elements\Company;
 use InvalidArgumentException;
 
-class TableField extends BaseNativeField
+class LightswitchField extends BaseNativeField
 {
     // Public Properties
     // =========================================================================
@@ -32,15 +32,7 @@ class TableField extends BaseNativeField
      */
     public ?string $name = null;
 
-    /**
-     * @var array<int, array{heading: string, handle: string, type: string}>
-     */
-    public array $columns = [];
-
-    /**
-     * @var array<int, array{label: string, value: string}>
-     */
-    public array $defaults = [];
+    public bool $on = false;
 
     // Public Methods
     // =========================================================================
@@ -65,16 +57,11 @@ class TableField extends BaseNativeField
             throw new InvalidArgumentException(sprintf('%s can only be used in route field layouts.', __CLASS__));
         }
 
-        return Cp::editableTableFieldHtml([
-            'allowAdd' => true,
-            'allowDelete' => true,
-            'allowReorder' => true,
-            'cols' => $this->columns,
-            'initJs' => true,
+        return Cp::lightswitchHtml([
+            'on' => $element[$this->name],
             'mandatory' => $this->mandatory,
             'name' => $this->name,
             'required' => $this->required,
-            'rows' => $element->getArray($this->name),
         ]);
     }
 
