@@ -20,6 +20,8 @@ use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
 use craftpulse\teamleader\records\CompanyRecord;
 
+use Illuminate\Support\Collection;
+
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
@@ -342,17 +344,14 @@ class Company extends Element
             $companyRecord->website = $this->website;
 
             $companyRecord->save(false);
+
+            if (!$isNew) {
+                $teamleaderId = $this->_generatePayload($this);
+                
+            }
         }
 
         parent::afterSave($isNew);
-
-        $payload = [
-            'context' => 'companies',
-            'name' => $this->title,
-            'telephones' => $this->telephones,
-        ];
-
-        Teamleader::$plugin->teamleaderConnector->deliverPayload($this, 'companies.add', $payload);
     }
 
     /**
@@ -543,6 +542,24 @@ class Company extends Element
 
     // Private Methods
     // =========================================================================
+
+    private function _generatePayload(Element $element): ?string
+    {
+        $payload = [
+            'context' => 'companies',
+            'name' => $element->title,
+        ];
+
+        $response = Teamleader::$plugin->teamleaderConnector->deliverPayload($this, 'companies.add', $payload);
+
+        if ($response) {
+            // This id needs to be saved in the element
+            return $response['data']['id'] ?? null;
+        }
+
+        return null;
+    }
+
     private function createAddressQuery(): AddressQuery
     {
         // @TODO: add owner to only get current elements

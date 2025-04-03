@@ -23,6 +23,24 @@ use verbb\auth\models\Token;
  */
 class Providers extends Component
 {
+    // Public Properties
+    // =========================================================================
+
+    /**
+     * @var Token|null
+     */
+    public ?Token $token = null;
+
+    /**
+     * @var string
+     */
+    public string $ownerHandle = 'teamleader-focus';
+
+    /**
+     * @var string
+     */
+    public string $reference = 'teamleader-focus';
+
     // Private Properties
     // =========================================================================
 
@@ -39,6 +57,7 @@ class Providers extends Component
      */
     public function init(): void
     {
+        $this->token = Auth::getInstance()->getTokens()->getTokenByOwnerReference($this->ownerHandle, $this->reference);
         $this->settings = Teamleader::$plugin->settings;
     }
 
@@ -56,12 +75,6 @@ class Providers extends Component
 
     public function getToken(): ?Token
     {
-        $token = Auth::getInstance()->getTokens()->getTokenByOwnerReference('teamleader-focus', 'teamleader-focus');
-
-        if (!empty($token)) {
-            return $token;
-        }
-
-        return null;
+        return $this->token;
     }
 }

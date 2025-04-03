@@ -2,13 +2,16 @@
 
 namespace craftpulse\teamleader\services;
 
-use Craft;
 use craft\base\Element;
+
+use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\auth\providers\TeamleaderFocus as TeamleaderFocusProvider;
+
 use yii\base\Component;
 
 use verbb\auth\base\OAuthProviderTrait;
 use verbb\auth\base\OAuthProviderInterface;
+use verbb\auth\models\Token;
 
 /**
  * Class TeamleaderFocusConnector
@@ -20,6 +23,14 @@ use verbb\auth\base\OAuthProviderInterface;
  */
 class TeamleaderFocusConnector extends Component implements OAuthProviderInterface
 {
+    // Public Properties
+    // =========================================================================
+
+    /**
+     * @var Token|null
+     */
+    public ?Token $token = null;
+
     // Traits
     // =========================================================================
 
@@ -29,6 +40,14 @@ class TeamleaderFocusConnector extends Component implements OAuthProviderInterfa
 
     // Public Methods
     // =========================================================================
+
+    /**
+     * @return void
+     */
+    public function init(): void
+    {
+        $this->token = Teamleader::$plugin->providers->getToken();
+    }
 
     /**
      * @param Element $element
@@ -54,5 +73,10 @@ class TeamleaderFocusConnector extends Component implements OAuthProviderInterfa
     public static function supportsOAuthConnection(): bool
     {
         return true;
+    }
+
+    public function getToken(): ?Token
+    {
+        return $this->token;
     }
 }
