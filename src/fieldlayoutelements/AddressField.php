@@ -32,29 +32,28 @@ class AddressField extends BaseNativeField
 
     protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
-        if (!$element instanceof Company) {
-            throw new InvalidArgumentException(sprintf('%s can only be used in route field layouts.', __CLASS__));
-        }
 
 //        return Cp::cardPreviewHtml(
 //            Craft::$app->fields->getLayoutByType(Address::class),
 //            $element->getAddresses(),
 //        );
 
-        return Cp::elementSelectHtml([
-            'allowAdd' => true,
-            'allowRemove' => true,
-            'required' => $this->required,
-            'mandatory' => $this->mandatory,
-            'siteId' => Craft::$app->sites->currentSite->id,
-            'name' => $this->name,
-            'elements' => $element[$this->field],
-            'elementType' => Address::class,
-            'criteria' => [
-                'siteId' => Craft::$app->sites->currentSite->id,
-            ],
-            'viewMode' => 'cards',
-            'showCardsInGrid' => true,
-        ]);
+//        return Cp::elementSelectHtml([
+//            'allowAdd' => true,
+//            'allowRemove' => true,
+//            'required' => $this->required,
+//            'mandatory' => $this->mandatory,
+//            'siteId' => Craft::$app->sites->currentSite->id,
+//            'name' => $this->name,
+//            'elements' => $element[$this->field],
+//            'elementType' => Address::class,
+//            'criteria' => [
+//                'siteId' => Craft::$app->sites->currentSite->id,
+//            ],
+//            'viewMode' => 'cards',
+//            'showCardsInGrid' => true,
+//        ]);
+
+        return '<span>@TODO: Address</span>';
     }
 }

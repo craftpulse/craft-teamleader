@@ -17,7 +17,16 @@ class ContactQuery extends ElementQuery
         $this->joinElementTable(Table::CONTACTS);
 
         // todo: apply any custom query params
-        // ...
+        $this->query->select([
+            'teamleader_focus_contacts.emails',
+            'teamleader_focus_contacts.firstName',
+            'teamleader_focus_contacts.language',
+            'teamleader_focus_contacts.lastName',
+            'teamleader_focus_contacts.marketingMailsConsent',
+            'teamleader_focus_contacts.salutation',
+            'teamleader_focus_contacts.teamleaderId',
+            'teamleader_focus_contacts.telephones',
+        ]);
 
         return parent::beforePrepare();
     }
