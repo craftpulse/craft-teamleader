@@ -367,10 +367,10 @@ class Teamleader extends Plugin {
 
                 if ($fieldLayout->type === Contact::class) {
                     // Add our custom fields
-                    /*foreach ($this->getContacts()->createFields() as $field)
+                    foreach ($this->getContacts()->createFields() as $field)
                     {
                         $event->fields[] = $field;
-                    }*/
+                    }
                 }
 
                 if ($fieldLayout->type === Deal::class) {

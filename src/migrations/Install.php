@@ -189,7 +189,7 @@ class Install extends Migration
      */
     public function addForeignKeys(): void
     {
-        if(!$this->db->tableExists(Table::COMPANIES)) {
+        if($this->db->tableExists(Table::COMPANIES)) {
             $this->addForeignKey(
                 null,
                 Table::COMPANIES,
@@ -202,8 +202,8 @@ class Install extends Migration
         }
 
         if(
-            !$this->db->tableExists(Table::COMPANIES) &&
-            !$this->db->tableExists(Table::COMPANIES_ADDRESSES)
+            $this->db->tableExists(Table::COMPANIES) &&
+            $this->db->tableExists(Table::COMPANIES_ADDRESSES)
         ) {
             $this->addForeignKey(
                 null,
@@ -226,7 +226,7 @@ class Install extends Migration
             );
         }
 
-        if(!$this->db->tableExists(Table::CONTACTS)) {
+        if($this->db->tableExists(Table::CONTACTS)) {
             $this->addForeignKey(
                 null,
                 Table::CONTACTS,
@@ -239,9 +239,9 @@ class Install extends Migration
         }
 
         if(
-            !$this->db->tableExists(TABLE::COMPANIES) &&
-            !$this->db->tableExists(Table::CONTACTS) &&
-            !$this->db->tableExists(Table::CONTACTS_COMPANIES)
+            $this->db->tableExists(TABLE::COMPANIES) &&
+            $this->db->tableExists(Table::CONTACTS) &&
+            $this->db->tableExists(Table::CONTACTS_COMPANIES)
         ) {
             $this->addForeignKey(
                 null,
@@ -263,15 +263,17 @@ class Install extends Migration
             );
         }
 
-        $this->addForeignKey(
-            null,
-            Table::DEALS,
-            'id',
-            CraftTable::ELEMENTS,
-            'id',
-            'CASCADE',
-            null
-        );
+        if($this->db->tableExists(Table::DEALS)) {
+            $this->addForeignKey(
+                null,
+                Table::DEALS,
+                'id',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                null
+            );
+        }
     }
 
     /**

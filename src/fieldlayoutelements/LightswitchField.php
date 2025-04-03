@@ -53,10 +53,6 @@ class LightswitchField extends BaseNativeField
      */
     protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
-        if (!$element instanceof Company) {
-            throw new InvalidArgumentException(sprintf('%s can only be used in route field layouts.', __CLASS__));
-        }
-
         return Cp::lightswitchHtml([
             'on' => $element[$this->name],
             'mandatory' => $this->mandatory,

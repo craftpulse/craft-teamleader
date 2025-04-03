@@ -24,6 +24,7 @@ trait ServicesTrait
         return [
             'components' => [
                 'companies' => Companies::class,
+                'contacts' => Contacts::class,
                 'providers' => Providers::class,
             ]
         ];

@@ -5,6 +5,7 @@ namespace craftpulse\teamleader\services;
 use Craft;
 use craft\fieldlayoutelements\TextField;
 
+use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
 use craftpulse\teamleader\fieldlayoutelements\LightswitchField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
@@ -21,6 +22,15 @@ use yii\base\Component;
  */
 class Companies extends Component
 {
+    public function getCompaniesByIds(array $companyIds): ?array
+    {
+        $companies = Company::find()->ids($companyIds);
+
+        if (empty($companies)) return [];
+
+        return $companies;
+    }
+
     public function createFields(): ?array
     {
         $fields = [
