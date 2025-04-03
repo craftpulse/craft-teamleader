@@ -11,6 +11,7 @@ use craft\helpers\Json;
 use craft\web\assets\tablesettings\TableSettingsAsset;
 use craft\web\assets\timepicker\TimepickerAsset;
 use craftpulse\teamleader\elements\Company;
+use craftpulse\teamleader\elements\Contact;
 use InvalidArgumentException;
 
 class TableField extends BaseNativeField
@@ -40,7 +41,7 @@ class TableField extends BaseNativeField
     /**
      * @var array<int, array{label: string, value: string}>
      */
-    public array $defaults = [];
+    public array|null $rows = null;
 
     // Public Methods
     // =========================================================================
@@ -61,10 +62,6 @@ class TableField extends BaseNativeField
      */
     protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
-        if (!$element instanceof Company) {
-            throw new InvalidArgumentException(sprintf('%s can only be used in route field layouts.', __CLASS__));
-        }
-
         return Cp::editableTableFieldHtml([
             'allowAdd' => true,
             'allowDelete' => true,
@@ -74,7 +71,7 @@ class TableField extends BaseNativeField
             'mandatory' => $this->mandatory,
             'name' => $this->name,
             'required' => $this->required,
-            'rows' => $element->getArray($this->name),
+            'rows' => $this->rows ?? $element->getArray($this->name) ?? [],
         ]);
     }
 

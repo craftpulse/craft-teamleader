@@ -68,6 +68,14 @@ class Deal extends Element
         return true;
     }
 
+    public static function statuses(): array
+    {
+        return [
+            'status1' => ['label' => \Craft::t('teamleader-focus', 'Custom Status 1'), 'color' => '#27AE60'],
+            'status2' => ['label' => \Craft::t('teamleader-focus', 'Custom Status 2'), 'color' => '#F2842D'],
+        ];
+    }
+
     public static function find(): ElementQueryInterface
     {
         return Craft::createObject(DealQuery::class, [static::class]);
