@@ -24,7 +24,28 @@ class Deals extends Component
 {
     public function createFields(): ?array
     {
-        $fields = [];
+        $fields = [
+            [
+                'class' => TextField::class,
+                'attribute' => 'title',
+                'name' => 'title',
+                'label' => Craft::t('teamleader-focus', 'Title'),
+                'inputType' => 'text',
+                'mandatory' => true,
+                'required' => true,
+                'width' => '100%',
+            ],
+            [
+                'class' => TextField::class,
+                'attribute' => 'amount',
+                'name' => 'amount',
+                'label' => Craft::t('teamleader-focus', 'Amount'),
+                'inputType' => 'text',
+                'mandatory' => true,
+                'required' => true,
+                'width' => '100%',
+            ]
+        ];
 
         return $fields;
     }

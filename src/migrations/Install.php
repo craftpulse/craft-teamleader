@@ -61,6 +61,7 @@ class Install extends Migration
     {
         $this->dropForeignKeys();
         $this->dropTables();
+
         Craft::$app->getFields()->deleteLayoutsByType(CompanyElement::class);
         Craft::$app->getFields()->deleteLayoutsByType(ContactElement::class);
         Craft::$app->getFields()->deleteLayoutsByType(DealElement::class);
@@ -174,6 +175,20 @@ class Install extends Migration
 
                     // connectors
                     'teamleaderId' => $this->integer(),
+
+                    //foreign keys
+                    'companyId' => $this->integer(),
+                    'contactId' => $this->integer(),
+
+                    // data
+                    'amount' => $this->float()->notNull(),
+                    'currency' => $this->string()->notNull(),
+                    'dateClosed' => $this->dateTime(),
+                    'dateClosing' => $this->dateTime(),
+                    'phase' => $this->string(),
+                    'reference' => $this->string(),
+                    'summary' => $this->string(),
+                    'webUrl' => $this->string(),
                 ]
             );
         }
@@ -260,12 +275,25 @@ class Install extends Migration
             );
         }
 
-        if($this->db->tableExists(Table::DEALS)) {
+        if(
+            $this->db->tableExists(Table::DEALS) &&
+            $this->db->tableExists(TABLE::COMPANIES) &&
+            $this->db->tableExists(Table::CONTACTS)
+        ) {
             $this->addForeignKey(
                 null,
                 Table::DEALS,
+                'companyId',
+                Table::COMPANIES,
                 'id',
-                CraftTable::ELEMENTS,
+                'CASCADE',
+                'CASCADE'
+            );
+            $this->addForeignKey(
+                null,
+                Table::DEALS,
+                'contactId',
+                Table::CONTACTS,
                 'id',
                 'CASCADE',
                 'CASCADE'

@@ -1,26 +1,83 @@
 {% import '_includes/forms' as forms %}
 
-<div class="meta">
-    <div class="field">
-        <div class="heading">
-        </div>
+<div class="fieldset">
+    <div class="meta">
+        <div class="field">
+            <legend class="heading">
+                {{ 'Company'|t('teamleader-focus') }}
+            </legend>
 
-        <div class="input ltr">
+            <div class="input ltr">
+                {% include '_includes/forms/elementSelect.twig' with companyConfig %}
+            </div>
         </div>
-    </div>
+        <div class="field">
+            <div class="heading">
+                {{ 'Contact'|t('teamleader-focus') }}
+            </div>
 
-    <div class="field">
-        <div class="heading">
-        </div>
-        <div class="input ltr">
-        </div>
-    </div>
-
-    <div class="field">
-        <div class="heading">
-        </div>
-        <div class="input ltr">
+            <div class="input ltr">
+                {% include '_includes/forms/elementSelect.twig' with contactConfig %}
+            </div>
         </div>
     </div>
 </div>
 
+<div class="fieldset">
+    <legend class="h6">
+        {{ 'Deal Status'|t('teamleader-focus') }}
+    </legend>
+    <div class="meta">
+        {% set statuses = element.statuses %}
+
+        {{ forms.hidden({
+            id: 'phase',
+            name: 'phase',
+            value: element.status,
+        }) }}
+
+        {% set statusField %}
+            <div>
+                <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
+                    <span class="status {{ statuses[element.status].color ?? 'purple' }}"></span>{{ statuses[element.status].label ?? 'njet' }}
+                </a>
+
+                <div class="menu" id="status-menu-select">
+                    <ul class="padded">
+                        {% for key, status in statuses %}
+                            <li>
+                                <a data-val="{{ key }}" data-label="{{ status.label }}" {% if element.status == key %}class="sel"{% endif %} data-color="{{ status.color }}"  href="javascript:;">
+                                    <span class="status {{ status.color }}"></span>{{ status.label }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endset %}
+
+        {{ forms.field({
+            label: 'Status' | t('formie'),
+        }, statusField) }}
+    </div>
+</div>
+
+{% js %}
+
+    $(function () {
+        $statusSelect = $('#status-menu-btn');
+
+        new Garnish.MenuBtn($statusSelect, {
+            onOptionSelect: function(data) {
+                var val = $(data).data('val');
+                var label = $(data).data('label');
+                var color = $(data).data('color');
+                $('#phase').val(val);
+
+                var html = '<span class="status ' + color + '"></span>' + label;
+                $statusSelect.html(html);
+            }
+        });
+    });
+
+{% endjs %}

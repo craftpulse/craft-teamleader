@@ -18,6 +18,14 @@ use craftpulse\teamleader\db\Table;
  * @property int $id ID
  * @property string $uid Uid
  * @property int|mixed|null $fieldLayoutId
+ * @property float $amount
+ * @property string $currency
+ * @property string $dateClosed
+ * @property string $dateClosing
+ * @property string $reference
+ * @property string $summary
+ * @property string $webUrl
+ * @property string $phase
  */
 class DealRecord extends ActiveRecord
 {

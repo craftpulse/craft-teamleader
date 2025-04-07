@@ -19,7 +19,7 @@ use yii\base\Component;
  *
  * @author      CraftPulse
  * @package     Teamleader
- * @since       5.0.0
+ * @kga mn native fields hebben, maar kwil kijken om die tabsince       5.0.0
  *
  */
 class Contacts extends Component

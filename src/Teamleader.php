@@ -216,6 +216,13 @@ class Teamleader extends Plugin {
             ];
         }
 
+        if ($currentUser->can('teamleader-focus:view-deals')) {
+            $subNavs['deals'] = [
+                'label' => Craft::t('teamleader-focus', 'Deals'),
+                'url' => 'teamleader-focus/deals',
+            ];
+        }
+
         if ($currentUser->can('teamleader-focus:settings') && $editableSettings) {
             $subNavs['settings'] = [
                 'label' => 'Settings',
@@ -383,10 +390,10 @@ class Teamleader extends Plugin {
 
                 if ($fieldLayout->type === Deal::class) {
                     // Add our custom fields
-                    /*foreach ($this->getDeals()->createFields() as $field)
+                    foreach ($this->getDeals()->createFields() as $field)
                     {
                         $event->fields[] = $field;
-                    }*/
+                    }
                 }
             }
         );
@@ -427,15 +434,15 @@ class Teamleader extends Plugin {
             }
         }
 
-        Event::on(
-            Deal::class,
-            Element::EVENT_DEFINE_SIDEBAR_HTML,
-            function(DefineHtmlEvent $event) {
-                /** @var Element $element */
-                $element = $event->sender;
-                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'deal');
-            },
-        );
+//        Event::on(
+//            Deal::class,
+//            Element::EVENT_DEFINE_SIDEBAR_HTML,
+//            function(DefineHtmlEvent $event) {
+//                /** @var Element $element */
+//                $element = $event->sender;
+//                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'deal');
+//            },
+//        );
     }
 
     /**

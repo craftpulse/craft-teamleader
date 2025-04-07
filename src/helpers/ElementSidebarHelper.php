@@ -98,6 +98,7 @@ class ElementSidebarHelper
 
         $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_deals-sidebar', [
             'variable' => true,
+            'element' => $element,
         ]);
 
         $event = new DefineElementEditorHtmlEvent([
