@@ -79,10 +79,10 @@ class ContactsConnector extends Component
             // @TODO: map custom fields -> teamleaderConnector
         ];
 
-        $endpoint = 'companies.add';
+        $endpoint = 'contact.add';
 
         if ($element->teamleaderId) {
-            $endpoint = 'companies.update';
+            $endpoint = 'contacts.update';
             $payload['id'] = $element->teamleaderId;
         }
 
