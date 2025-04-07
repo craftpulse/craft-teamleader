@@ -51,7 +51,6 @@ class Contact extends Element
 
     private ?FieldLayout $fieldLayout = null;
     private array|Collection $_companyContacts = [];
-    private array|Collection $_companies = [];
 
     // Public Static Methods
     // =========================================================================
@@ -170,17 +169,6 @@ class Contact extends Element
     }
 
     /**
-     * @param string $source
-     * @return array
-     */
-    protected static function defineActions(string $source): array
-    {
-        return [
-            AssignCompanies::class
-        ];
-    }
-
-    /**
      * @return bool
      */
     protected static function includeSetStatusAction(): bool
@@ -224,7 +212,7 @@ class Contact extends Element
         return [
             'slug' => ['label' => Craft::t('app', 'Slug')],
             'id' => ['label' => Craft::t('app', 'ID')],
-            'vatNumber' => ['label' => Craft::t('teamleader-focus', 'VAT Number')],
+            'companies' => ['label' => Craft::t('teamleader-focus', 'Companies')],
             'uid' => ['label' => Craft::t('app', 'UID')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -240,6 +228,7 @@ class Contact extends Element
     {
         return [
             'dateCreated',
+            'companies'
             // ...
         ];
     }
@@ -370,19 +359,9 @@ class Contact extends Element
                             $contactCompany->save(false);
                         }
 
-                        // Search value and delete
                         if (($key = array_search($company, $idsToDelete)) !== false) {
                             unset($idsToDelete[$key]);
                         }
-                        //                    $companyRelations = $companyRelations->filter(function($value) use ($company){return $value['companyId'] != $company;});
-                        //                    Craft::dd($companyRelations->reject(
-                        //                        function($entry) use ($company){
-                        //                            $entry['companyId'] == $company;
-                        //                        }));
-                        //                    $companyRelations = $companyRelations->filter(
-                        //                        function($entry) use ($company){
-                        //                            $entry['id'] != $company;
-                        //                        });
                     }
                 }
 
@@ -464,8 +443,6 @@ class Contact extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-//        $this->emails = !empty($this->emails) ? Json::encode($this->emails) : [];
-//        $this->telephones = !empty($this->telephones) ? Json::encode($this->telephones) : [];
         $this->title = $this->firstName . ' ' . $this->lastName;
 
         return parent::beforeSave($isNew);
@@ -488,7 +465,7 @@ class Contact extends Element
             $this->_companyContacts = Teamleader::$plugin->getContacts()->getContactsCompaniesByContactId($this->id);
 
             if ($this->_companyContacts) {
-                $this->_companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts->map(function($relation){return $relation['companyId'];})->all());
+                $this->companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts->map(function($relation){return $relation['companyId'];})->all());
             }
         }
     }
@@ -563,7 +540,7 @@ class Contact extends Element
 
     public function getCompanies(): array
     {
-        return $this->_companies;
+        return $this->companies;
     }
 
     public function getArray($handle): array
