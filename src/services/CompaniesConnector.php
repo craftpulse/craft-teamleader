@@ -71,12 +71,22 @@ class CompaniesConnector extends Component
         $payload = [
             'context' => 'companies',
             'name' => $element->title,
+            'marketingMailsConsent' => $element->marketingMailsConsent,
+            'emails' => $element->emails,
+            'nationalIdentificationNumber' => $element->nationalIdentificationNumber,
+            'telephones' => $element->telephones,
+            // @TODO: maybe this can be a validator from the get go?
+            'vatNumber' => Teamleader::$plugin->teamleaderConnector->formatVatNumber($element->vatNumber),
+            // @TODO: check if we need a validator
+            'website' => $element->website,
+            // @TODO: map custom fields -> teamleaderConnector
         ];
 
         $endpoint = 'companies.add';
 
         if ($element->teamleaderId) {
             $endpoint = 'companies.update';
+            $payload['id'] = $element->teamleaderId;
         }
 
         $response = Teamleader::$plugin->teamleaderConnector->deliverPayload($element, $endpoint, $payload);
