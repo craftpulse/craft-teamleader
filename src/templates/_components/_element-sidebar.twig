@@ -1,0 +1,79 @@
+{% import '_includes/forms' as forms %}
+
+<div class="data">
+    <div class="heading">
+        {{ 'Status'|t('teamleader-focus') }}
+    </div>
+    <div class="value live" style="justify-content: space-between">
+            <div>
+                {{ synced ? 'Synced'|t('teamleader-focus') : 'Unsynced'|t('teamleader-focus') }}
+            </div>
+            {#  @TODO - do this permission based on the context #}
+
+            {{ tag('button', {
+                text: 'Sync to teamleader'|t('teamleader-focus'),
+                class: 'refresh btn small',
+                data: {
+                    action: syncToActionUrl,
+                },
+            }) }}
+
+            {{ tag('button', {
+                text: 'Sync from teamleader'|t('teamleader-focus'),
+                class: 'refresh btn small',
+                data: {
+                    action: syncFromActionUrl,
+                },
+            }) }}
+
+        <div class="value refreshed hidden">
+            <div>
+                {{ 'Synced'|t('teamleader-focus') }}
+                <span class="success" style="vertical-align: text-bottom;" data-icon="check"></span>
+            </div>
+        </div>
+</div>
+    {# @TODO - maybe we can add a "sync date" to the elements? #}
+
+{% css %}
+    .teamleader-focus-element-sidebar .meta .data {
+        min-height: 0;
+    }
+
+    .teamleader-focus-element-sidebar .meta .data:first-of-type {
+        padding-top: 8px;
+    }
+
+    .teamleader-focus-element-sidebar .meta .data:last-of-type {
+        padding-bottom: 8px;
+    }
+{% endcss %}
+
+{% js %}
+    $('.teamleader-focus-element-sidebar .refresh').click(function(event) {
+        event.preventDefault();
+
+        if ($(this).hasClass('disabled')) {
+            return;
+        }
+
+        $(this).addClass('disabled');
+
+        Craft.sendActionRequest('POST', $(this).data('action'))
+        .then((response) => {
+            Craft.cp.displaySuccess(response.data.message);
+            $('.teamleader-focus-element-sidebar .live').remove();
+            $('.teamleader-focus-element-sidebar .refreshed').removeClass('hidden');
+        })
+        .catch(({response}) => {
+            if (response.data.message) {
+                Craft.cp.displayError(response.data.message);
+            } else {
+                Craft.cp.displayError();
+            }
+        })
+        .finally(() => {
+            $(this).removeClass('disabled');
+        });
+    });
+{% endjs %}

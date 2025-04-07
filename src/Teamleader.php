@@ -14,10 +14,12 @@ use Craft;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
+use craft\base\Element;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\User;
 use craft\events\DefineFieldLayoutFieldsEvent;
+use craft\events\DefineHtmlEvent;
 use craft\events\RegisterComponentTypesEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\events\RegisterUserPermissionsEvent;
@@ -30,6 +32,7 @@ use craft\web\UrlManager;
 use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\elements\Contact;
 use craftpulse\teamleader\elements\Deal;
+use craftpulse\teamleader\helpers\ElementSidebarHelper;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
 use craftpulse\teamleader\services\ServicesTrait;
@@ -147,7 +150,8 @@ class Teamleader extends Plugin {
             // Register control panel events
             if (Craft::$app->getRequest()->getIsCpRequest()) {
                 $this->_registerCpUrlRules();
-                $this->_registerFieldLayout();
+                $this->_registerFieldLayouts();
+                $this->_registerSidebarPanels();
             }
 
             // Permissions
@@ -349,7 +353,7 @@ class Teamleader extends Plugin {
      *
      * @return void
      */
-    private function _registerFieldLayout(): void
+    private function _registerFieldLayouts(): void
     {
         Event::on(
             FieldLayout::class,
@@ -402,6 +406,25 @@ class Teamleader extends Plugin {
     }
 
     /**
+     * Registers sidebar panels. Sidebar panels are registered on eligible element types.
+     */
+    private function _registerSidebarPanels(): void
+    {
+        foreach (ElementSidebarHelper::ELIGIBLE_ELEMENT_TYPES as $elementType) {
+            if (class_exists($elementType)) {
+                Event::on($elementType, $elementType::EVENT_DEFINE_SIDEBAR_HTML,
+                    function(DefineHtmlEvent $event) {
+
+                        /** @var Element $element */
+                        $element = $event->sender;
+                        $event->html .= ElementSidebarHelper::getSidebarHtml($element);
+                    },
+                );
+            }
+        }
+    }
+
+    /**
      * Registers user permissions
      *
      * @return void
@@ -439,6 +462,9 @@ class Teamleader extends Plugin {
                         ],
                         'teamleader-focus:delete-deals' => [
                             'label' => Craft::t('teamleader-focus', 'Delete deals'),
+                        ],
+                        'teamleader-focus:view-sidebar-panel' => [
+                            'label' => Craft::t('teamleader-focus', 'View sidebar panels'),
                         ],
                         'teamleader-focus:settings' => [
                             'label' => Craft::t('teamleader-focus', 'Access settings'),
