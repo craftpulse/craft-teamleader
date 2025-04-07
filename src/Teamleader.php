@@ -11,6 +11,8 @@
 namespace craftpulse\teamleader;
 
 use Craft;
+use craft\base\ElementInterface;
+use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
