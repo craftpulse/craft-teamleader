@@ -44,7 +44,7 @@ class ElementSidebarHelper
     /**
      * Returns the HTML for the sidebar.
      */
-    public static function getSidebarHtml(Element $element): string
+    public static function getSidebarHtml(Element $element, string $type = 'teamleader'): string
     {
         $user = Craft::$app->getUser()->getIdentity();
 
@@ -60,7 +60,7 @@ class ElementSidebarHelper
 
         $html = Html::beginTag('fieldset', ['class' => 'teamleader-focus-element-sidebar']) .
             Html::tag('legend', 'Teamleader Focus Status', ['class' => 'h6']) .
-            Html::tag('div', self::metaFieldsHtml($element), ['class' => 'meta']) .
+            Html::tag('div', $type === 'teamleader' ? self::metaFieldsHtmlTeamleader($element) : self::metaFieldsHtmlDeals($element), ['class' => 'meta']) .
             Html::endTag('fieldset');
 
         $event = new DefineElementEditorHtmlEvent([
@@ -72,14 +72,32 @@ class ElementSidebarHelper
         return $event->html;
     }
 
-    private static function metaFieldsHtml(Element $element): string
+    private static function metaFieldsHtmlTeamleader(Element $element): string
     {
         // Need logic here to create this currently based on the element, we need an element with the data from our database
 
-        $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_element-sidebar', [
+        $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_teamleader-sidebar', [
             'synced' => true,
             'syncToActionUrl' => UrlHelper::actionUrl('teamleader-focus/sync/sync-to', $element),
             'syncFromActionUrl' => UrlHelper::actionUrl('teamleader-focus/sync/sync-from', $element),
+        ]);
+
+        $event = new DefineElementEditorHtmlEvent([
+            'element' => $element,
+            'html' => $html,
+        ]);
+
+        Event::trigger(self::class, self::EVENT_DEFINE_META_FIELDS_HTML, $event);
+
+        return $event->html;
+    }
+
+    private static function metaFieldsHtmlDeals(Element $element): string
+    {
+        // Need logic here to create this currently based on the element, we need an element with the data from our database
+
+        $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_deals-sidebar', [
+            'variable' => true,
         ]);
 
         $event = new DefineElementEditorHtmlEvent([

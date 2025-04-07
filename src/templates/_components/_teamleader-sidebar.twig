@@ -1,38 +1,53 @@
 {% import '_includes/forms' as forms %}
 
-<div class="data">
-    <div class="heading">
-        {{ 'Status'|t('teamleader-focus') }}
-    </div>
-    <div class="value live" style="justify-content: space-between">
-            <div>
-                {{ synced ? 'Synced'|t('teamleader-focus') : 'Unsynced'|t('teamleader-focus') }}
-            </div>
-            {#  @TODO - do this permission based on the context #}
+<div class="meta">
+    <div class="field">
+        <div class="heading">
+            Sync status
+        </div>
 
+        <div class="input ltr">
+            {{ synced ? 'Synced'|t('teamleader-focus') : 'Unsynced'|t('teamleader-focus') }}
+        </div>
+    </div>
+
+    <div class="field">
+        <div class="heading">
+            {{ 'Synchronise to Teamleader Focus'|t('teamleader-focus') }}
+        </div>
+        <div class="input ltr">
             {{ tag('button', {
-                text: 'Sync to teamleader'|t('teamleader-focus'),
+                text: 'Sync'|t('teamleader-focus'),
                 class: 'refresh btn small',
                 data: {
                     action: syncToActionUrl,
                 },
             }) }}
+        </div>
+    </div>
 
+    <div class="field">
+        <div class="heading">
+            {{ 'Synchronise from Teamleader Focus'|t('teamleader-focus') }}
+        </div>
+        <div class="input ltr">
             {{ tag('button', {
-                text: 'Sync from teamleader'|t('teamleader-focus'),
+                text: 'Sync'|t('teamleader-focus'),
                 class: 'refresh btn small',
                 data: {
                     action: syncFromActionUrl,
                 },
             }) }}
+        </div>
+    </div>
+</div>
 
-        <div class="value refreshed hidden">
+        {# <div class="value refreshed hidden">
             <div>
                 {{ 'Synced'|t('teamleader-focus') }}
                 <span class="success" style="vertical-align: text-bottom;" data-icon="check"></span>
             </div>
-        </div>
-</div>
+        </div> #}
     {# @TODO - maybe we can add a "sync date" to the elements? #}
 
 {% css %}

@@ -414,16 +414,28 @@ class Teamleader extends Plugin {
     {
         foreach (ElementSidebarHelper::ELIGIBLE_ELEMENT_TYPES as $elementType) {
             if (class_exists($elementType)) {
-                Event::on($elementType, $elementType::EVENT_DEFINE_SIDEBAR_HTML,
+                Event::on(
+                    $elementType,
+                    $elementType::EVENT_DEFINE_SIDEBAR_HTML,
                     function(DefineHtmlEvent $event) {
 
                         /** @var Element $element */
                         $element = $event->sender;
-                        $event->html .= ElementSidebarHelper::getSidebarHtml($element);
+                        $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'teamleader');
                     },
                 );
             }
         }
+
+        Event::on(
+            Deal::class,
+            Element::EVENT_DEFINE_SIDEBAR_HTML,
+            function(DefineHtmlEvent $event) {
+                /** @var Element $element */
+                $element = $event->sender;
+                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'deal');
+            },
+        );
     }
 
     /**
