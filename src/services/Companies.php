@@ -24,7 +24,9 @@ class Companies extends Component
 {
     public function getCompaniesByIds(array $companyIds): ?array
     {
-        $companies = Company::find()->ids($companyIds);
+        $companies = Company::find()
+            ->id($companyIds)
+            ->all();
 
         if (empty($companies)) return [];
 

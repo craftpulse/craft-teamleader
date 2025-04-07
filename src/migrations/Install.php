@@ -90,7 +90,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->uid(),
+                    'teamleaderId' => $this->integer(),
 
                     // data
                     'emails' => $this->json(),
@@ -131,7 +131,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->uid(),
+                    'teamleaderId' => $this->integer(),
 
                     // data
                     'emails' => $this->json(),
@@ -209,7 +209,7 @@ class Install extends Migration
                 CraftTable::ADDRESSES,
                 'id',
                 'CASCADE',
-                null
+                'CASCADE'
             );
 
             $this->addForeignKey(
@@ -219,7 +219,7 @@ class Install extends Migration
                 Table::COMPANIES,
                 'id',
                 'CASCADE',
-                null
+                'CASCADE'
             );
         }
 
@@ -231,7 +231,7 @@ class Install extends Migration
                 CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
-                null
+                'CASCADE'
             );
         }
 
@@ -247,7 +247,7 @@ class Install extends Migration
                 Table::COMPANIES,
                 'id',
                 'CASCADE',
-                null
+                'CASCADE'
             );
             $this->addForeignKey(
                 null,
@@ -256,7 +256,7 @@ class Install extends Migration
                 Table::CONTACTS,
                 'id',
                 'CASCADE',
-                null
+                'CASCADE'
             );
         }
 
@@ -268,7 +268,7 @@ class Install extends Migration
                 CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
-                null
+                'CASCADE'
             );
         }
     }

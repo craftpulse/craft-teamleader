@@ -20,9 +20,13 @@ use craft\web\CpScreenResponseBehavior;
 use craftpulse\teamleader\elements\actions\AssignCompanies;
 use craftpulse\teamleader\elements\conditions\ContactCondition;
 use craftpulse\teamleader\elements\db\ContactQuery;
+use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
+use craftpulse\teamleader\records\CompanyRecord;
+use craftpulse\teamleader\records\ContactCompanyRecord;
 use craftpulse\teamleader\records\ContactRecord;
 use craftpulse\teamleader\services\ServicesTrait;
 use craftpulse\teamleader\Teamleader;
+use Illuminate\Support\Collection;
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
@@ -43,11 +47,10 @@ class Contact extends Element
     public array|string $emails = [];
     public array|string $telephones = [];
     public ?int $teamleaderId = null;
-    public array $companies = [];
+    public array|Collection|string $companies = [];
 
     private ?FieldLayout $fieldLayout = null;
-    private ?array $_companyContacts = [];
-    private ?array $_companies = [];
+    private array|Collection $_companyContacts = [];
 
     // Public Static Methods
     // =========================================================================
@@ -104,7 +107,7 @@ class Contact extends Element
      */
     public static function hasTitles(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -166,17 +169,6 @@ class Contact extends Element
     }
 
     /**
-     * @param string $source
-     * @return array
-     */
-    protected static function defineActions(string $source): array
-    {
-        return [
-            AssignCompanies::class,
-        ];
-    }
-
-    /**
      * @return bool
      */
     protected static function includeSetStatusAction(): bool
@@ -220,7 +212,7 @@ class Contact extends Element
         return [
             'slug' => ['label' => Craft::t('app', 'Slug')],
             'id' => ['label' => Craft::t('app', 'ID')],
-            'vatNumber' => ['label' => Craft::t('teamleader-focus', 'VAT Number')],
+            'companies' => ['label' => Craft::t('teamleader-focus', 'Companies')],
             'uid' => ['label' => Craft::t('app', 'UID')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
             'dateUpdated' => ['label' => Craft::t('app', 'Date Updated')],
@@ -236,6 +228,7 @@ class Contact extends Element
     {
         return [
             'dateCreated',
+            'companies'
             // ...
         ];
     }
@@ -257,6 +250,7 @@ class Contact extends Element
             'marketingMailsConsent',
             'salutation',
             'telephones',
+            'companies',
         ], 'safe'];
 
         return $rules;
@@ -339,13 +333,48 @@ class Contact extends Element
            $contactRecord->telephones = $this->telephones;
            $contactRecord->language = $this->language;
 
+
             $teamleaderId = Teamleader::$plugin->contactsConnector->sync($this, $isNew);
 
             if ($teamleaderId) {
                 $contactRecord->teamleaderId = $teamleaderId;
             }
 
-            $contactRecord->save(false);
+            $success = $contactRecord->save(false);
+
+            if ($success) {
+                $companyRelations = Teamleader::$plugin->getContacts()->getContactsCompaniesByContactId($this->id);
+                $idsToDelete = $companyRelations->map(function($value) {return $value['companyId'];})->toArray();
+
+                if (!is_string($this->companies)) {
+                    foreach ($this->companies as $company) {
+                        if (!$companyRelations->first(function($value) use ($company) {
+                            return $value['companyId'] == $company;
+                        })) {
+                            // add
+                            $contactCompany = new ContactCompanyRecord();
+                            $contactCompany->companyId = $company;
+                            $contactCompany->contactId = $this->id;
+
+                            $contactCompany->save(false);
+                        }
+
+                        if (($key = array_search($company, $idsToDelete)) !== false) {
+                            unset($idsToDelete[$key]);
+                        }
+                    }
+                }
+
+                foreach ($idsToDelete as $itemToDelete) {
+                    $company = ContactCompanyRecord::find()
+                        ->andWhere(['companyId' => $itemToDelete])
+                        ->one();
+
+                    if ($company) {
+                        $company->delete(); // Delete the company
+                    }
+                }
+            }
         }
 
         parent::afterSave($isNew);
@@ -414,8 +443,7 @@ class Contact extends Element
      */
     public function beforeSave(bool $isNew): bool
     {
-//        $this->emails = !empty($this->emails) ? Json::encode($this->emails) : [];
-//        $this->telephones = !empty($this->telephones) ? Json::encode($this->telephones) : [];
+        $this->title = $this->firstName . ' ' . $this->lastName;
 
         return parent::beforeSave($isNew);
     }
@@ -433,13 +461,13 @@ class Contact extends Element
     {
         parent::init();
 
-        $this->_companyContacts = Teamleader::$plugin->getContacts()->getContactsCompaniesById($this->id);
+        if ($this->id) {
+            $this->_companyContacts = Teamleader::$plugin->getContacts()->getContactsCompaniesByContactId($this->id);
 
-        if ($this->_companyContacts) {
-            $this->_companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts);
+            if ($this->_companyContacts) {
+                $this->companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts->map(function($relation){return $relation['companyId'];})->all());
+            }
         }
-
-//        Craft::dd($this->getContacts()->getContactsCompaniesById($this->id));
     }
 
     /**
@@ -512,7 +540,7 @@ class Contact extends Element
 
     public function getCompanies(): array
     {
-        return $this->_companies;
+        return $this->companies;
     }
 
     public function getArray($handle): array

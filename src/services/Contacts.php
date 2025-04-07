@@ -5,11 +5,13 @@ namespace craftpulse\teamleader\services;
 use Craft;
 use craft\fieldlayoutelements\TextField;
 
+use craftpulse\teamleader\fieldlayoutelements\CompaniesField;
 use craftpulse\teamleader\fieldlayoutelements\DropdownField;
 use craftpulse\teamleader\fieldlayoutelements\LightswitchField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
 
-use craftpulse\teamleader\records\ContactCompanyRecords;
+use craftpulse\teamleader\records\ContactCompanyRecord;
+use Illuminate\Support\Collection;
 use yii\base\Component;
 
 /**
@@ -22,14 +24,34 @@ use yii\base\Component;
  */
 class Contacts extends Component
 {
-    public function getContactsCompaniesById(int $contactId): ?array
+    public function getContactsCompaniesByContactId(int $contactId): array|Collection|null
     {
-        $contactCompanies = ContactCompanyRecords::find()->andWhere(['contactId' => $contactId])->all();
+        $contactCompanies = ContactCompanyRecord::find()
+            ->andWhere(['contactId' => $contactId])
+            ->asArray() // Return results as an array
+            ->collect(); // Retrieve all matching records
 
         if (empty($contactCompanies)) return [];
 
-        return $contactCompanies->toArray();
+        return $contactCompanies;
     }
+    public function getContactsCompaniesByConmpanyId(int $companyId): array|Collection|null
+    {
+        $contactCompanies = ContactCompanyRecord::find()
+            ->andWhere(['companyId' => $companyId])
+            ->asArray()
+            ->collect();
+
+        if (empty($contactCompanies)) return [];
+
+        return $contactCompanies;
+    }
+
+    public function getRelationById(string $id): ?ContactCompanyRecord
+    {
+        return ContactCompanyRecord::findOne(['id' => $id]);
+    }
+
     public function createFields(): ?array
     {
         $fields = [
@@ -159,6 +181,11 @@ class Contacts extends Component
                 'mandatory' => true,
                 'required' => false,
                 'width' => '100%',
+            ], [
+                'class' => CompaniesField::class,
+                'attribute' => 'companies',
+                'name' => 'companies',
+                'title' => Craft::t('teamleader-focus', 'Companies'),
             ]
         ];
 
