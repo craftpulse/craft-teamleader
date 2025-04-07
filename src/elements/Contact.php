@@ -42,7 +42,7 @@ class Contact extends Element
     public ?bool $marketingMailsConsent = false;
     public ?string $firstName = '';
     public ?string $language = null;
-    public ?string $lastName = '';
+    public $lastName = '';
     public ?string $salutation = null;
     public array|string $emails = [];
     public array|string $telephones = [];
@@ -344,7 +344,12 @@ class Contact extends Element
            $contactRecord->telephones = $this->telephones;
            $contactRecord->language = $this->language;
 
-//           $contactRecord->teamleaderId = $this->teamleaderId;
+
+            $teamleaderId = Teamleader::$plugin->contactsConnector->sync($this, $isNew);
+
+            if ($teamleaderId) {
+                $contactRecord->teamleaderId = $teamleaderId;
+            }
 
             $success = $contactRecord->save(false);
 

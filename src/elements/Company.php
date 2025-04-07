@@ -354,7 +354,11 @@ class Company extends Element
             $companyRecord->vatNumber = $this->vatNumber;
             $companyRecord->website = $this->website;
 
-            Teamleader::$plugin->companiesConnector->sync($this, $isNew);
+            $teamleaderId = Teamleader::$plugin->companiesConnector->sync($this, $isNew);
+
+            if ($teamleaderId) {
+                $companyRecord->teamleaderId = $teamleaderId;
+            }
 
             $companyRecord->save(false);
         }
