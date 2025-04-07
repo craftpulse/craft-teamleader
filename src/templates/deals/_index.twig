@@ -1,0 +1,14 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'Deals'|t('app') %}
+{% set elementType = 'craftpulse\\teamleader\\elements\\Deal' %}
+{% set canHaveDrafts = true %}
+
+{% block actionButton %}
+    {{ tag('a', {
+        class: 'btn submit add icon',
+        href: actionUrl('elements/create', {
+            elementType: elementType
+        }),
+        text: 'New deal'|t('teamleader-focus'),
+    }) }}
+{% endblock %}

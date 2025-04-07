@@ -37,6 +37,7 @@ class AddressField extends BaseNativeField
 
     protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
+
         $config = [
             'showInGrid' => true,
             'canCreate' => true,
@@ -51,5 +52,27 @@ class AddressField extends BaseNativeField
         return Html::tag('h2', Craft::t('app', 'Addresses')) .
             $element->getAddressManager()->getCardsHtml($element, $config);
 //        return '<span>@TODO: Address</span>';
+
+//        return Cp::cardPreviewHtml(
+//            Craft::$app->fields->getLayoutByType(Address::class),
+//            $element->getAddresses(),
+//        );
+
+//        return Cp::elementSelectHtml([
+//            'allowAdd' => true,
+//            'allowRemove' => true,
+//            'required' => $this->required,
+//            'mandatory' => $this->mandatory,
+//            'siteId' => Craft::$app->sites->currentSite->id,
+//            'name' => $this->name,
+//            'elements' => $element[$this->field],
+//            'elementType' => Address::class,
+//            'criteria' => [
+//                'siteId' => Craft::$app->sites->currentSite->id,
+//            ],
+//            'viewMode' => 'cards',
+//            'showCardsInGrid' => true,
+//        ]);
+
     }
 }

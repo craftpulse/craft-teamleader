@@ -1,0 +1,14 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'Contacts'|t('app') %}
+{% set elementType = 'craftpulse\\teamleader\\elements\\Contact' %}
+{% set canHaveDrafts = true %}
+
+{% block actionButton %}
+    {{ tag('a', {
+        class: 'btn submit add icon',
+        href: actionUrl('elements/create', {
+            elementType: elementType
+        }),
+        text: 'New contact'|t('teamleader-focus'),
+    }) }}
+{% endblock %}

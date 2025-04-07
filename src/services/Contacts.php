@@ -5,63 +5,76 @@ namespace craftpulse\teamleader\services;
 use Craft;
 use craft\fieldlayoutelements\TextField;
 
-use craftpulse\teamleader\elements\Company;
-use craftpulse\teamleader\fieldlayoutelements\AddressField;
+use craftpulse\teamleader\fieldlayoutelements\DropdownField;
 use craftpulse\teamleader\fieldlayoutelements\LightswitchField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
 
+use craftpulse\teamleader\records\ContactCompanyRecords;
 use yii\base\Component;
 
 /**
- * Class Companies
+ * Class Contacts
  *
  * @author      CraftPulse
  * @package     Teamleader
  * @since       5.0.0
  *
  */
-class Companies extends Component
+class Contacts extends Component
 {
-    public function getCompaniesByIds(array $companyIds): ?array
+    public function getContactsCompaniesById(int $contactId): ?array
     {
-        $companies = Company::find()->ids($companyIds);
+        $contactCompanies = ContactCompanyRecords::find()->andWhere(['contactId' => $contactId])->all();
 
-        if (empty($companies)) return [];
+        if (empty($contactCompanies)) return [];
 
-        return $companies;
+        return $contactCompanies->toArray();
     }
-
     public function createFields(): ?array
     {
         $fields = [
             [
+                'class' => DropdownField::class,
+                'attribute' => 'salutation',
+                'name' => 'salutation',
+                'label' => Craft::t('teamleader-focus', 'Salutation'),
+                'options' => [
+                    [
+                        'label' => Craft::t('teamleader-focus', 'Mr.'),
+                        'value' => 'Mr.'
+                    ],
+                    [
+                        'label' => Craft::t('teamleader-focus', 'Ms.'),
+                        'value' => 'Ms.'
+                    ],
+                    [
+                        'label' => Craft::t('teamleader-focus', 'Mrs.'),
+                        'value' => 'Mrs.'
+                    ]
+                ],
+                'mandatory' => true,
+                'required' => false,
+                'width' => '20%',
+            ], [
                 'class' => TextField::class,
-                'attribute' => 'title',
-                'name' => 'title',
-                'label' => Craft::t('teamleader-focus', 'Name'),
+                'attribute' => 'firstName',
+                'name' => 'firstName',
+                'label' => Craft::t('teamleader-focus', 'First Name'),
                 'inputType' => 'text',
                 'mandatory' => true,
                 'required' => true,
-                'width' => '100%',
-            ], [
-                'class' => TextField::class,
-                'attribute' => 'vatNumber',
-                'name' => 'vatNumber',
-                'label' => Craft::t('teamleader-focus', 'VAT Number'),
-                'inputType' => 'text',
-                'mandatory' => true,
-                'required' => false,
                 'width' => '50%',
             ], [
                 'class' => TextField::class,
-                'attribute' => 'nationalIdentificationNumber',
-                'name' => 'nationalIdentificationNumber',
-                'label' => Craft::t('teamleader-focus', 'National Identification Number'),
+                'attribute' => 'lastName',
+                'name' => 'lastName',
+                'label' => Craft::t('teamleader-focus', 'Last Name'),
                 'inputType' => 'text',
                 'mandatory' => true,
-                'required' => false,
+                'required' => true,
                 'width' => '50%',
-            ], [
+            ],
+            [
                 'class' => TableField::class,
                 'attribute' => 'emails',
                 'name' => 'emails',
@@ -116,21 +129,27 @@ class Companies extends Component
                     ],
                 ],
             ], [
-                'class' => AddressField::class,
-                'attribute' => 'addresses',
-                'name' => 'addresses',
-                'label' => Craft::t('teamleader-focus', 'Addresses'),
-                'required' => false,
-                'width' => '100%',
-            ], [
-                'class' => TextField::class,
-                'attribute' => 'website',
-                'name' => 'website',
-                'label' => Craft::t('teamleader-focus', 'Website'),
-                'inputType' => 'text',
+                'class' => DropdownField::class,
+                'attribute' => 'languages',
+                'name' => 'languages',
+                'label' => Craft::t('teamleader-focus', 'Salutation'),
+                'options' => [
+                    [
+                        'label' => Craft::t('teamleader-focus', 'English'),
+                        'value' => 'en'
+                    ],
+                    [
+                        'label' => Craft::t('teamleader-focus', 'Dutch'),
+                        'value' => 'nl'
+                    ],
+                    [
+                        'label' => Craft::t('teamleader-focus', 'French'),
+                        'value' => 'fr'
+                    ]
+                ],
                 'mandatory' => true,
                 'required' => false,
-                'width' => '100%',
+                'width' => '50%',
             ], [
                 'class' => LightswitchField::class,
                 'attribute' => 'marketingMailsConsent',

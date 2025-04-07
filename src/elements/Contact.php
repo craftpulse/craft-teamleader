@@ -7,85 +7,47 @@ use craft\base\Element;
 use craft\elements\Address;
 use craft\elements\db\AddressQuery;
 use craft\elements\ElementCollection;
-use craft\elements\NestedElementManager;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\enums\PropagationMethod;
+use craft\fieldlayoutelements\TextField;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
+use craft\models\FieldLayoutTab;
 use craft\web\CpScreenResponseBehavior;
-
+use craftpulse\teamleader\elements\actions\AssignCompanies;
+use craftpulse\teamleader\elements\conditions\ContactCondition;
+use craftpulse\teamleader\elements\db\ContactQuery;
+use craftpulse\teamleader\records\ContactRecord;
+use craftpulse\teamleader\services\ServicesTrait;
 use craftpulse\teamleader\Teamleader;
-use craftpulse\teamleader\elements\conditions\CompanyCondition;
-use craftpulse\teamleader\elements\db\CompanyQuery;
-use craftpulse\teamleader\records\CompanyRecord;
-
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
 use yii\web\Response;
 
 /**
- * Company element type
+ * Contact element type
  */
-class Company extends Element
+class Contact extends Element
 {
-    // Traits
+    // Constant Properties
     // =========================================================================
-
-    // Public Properties
-    // =========================================================================
-    /**
-     * @var bool|null
-     */
     public ?bool $marketingMailsConsent = false;
-
-    /**
-     * @var string|null
-     */
-    public ?string $nationalIdentificationNumber = null;
-
-    /**
-     * @var string|null
-     */
-    public ?string $vatNumber = null;
-
-    /**
-     * @var string|null
-     */
-    public ?string $website = null;
-
-    /**
-     * @var array|string
-     */
+    public ?string $firstName = '';
+    public ?string $language = null;
+    public ?string $lastName = '';
+    public ?string $salutation = null;
     public array|string $emails = [];
-
-    /**
-     * @var array|string
-     */
     public array|string $telephones = [];
-
-    /**
-     * @var string
-     */
-    public string $name = '';
-
-
-    // Private Properties
-    // =========================================================================
-    /**
-     * @var FieldLayout|null
-     */
-    private ?FieldLayout $fieldLayout = null;
-
-    private NestedElementManager $_addressManager;
-    /**
-     * @var int|null
-     */
     public ?int $teamleaderId = null;
+    public array $companies = [];
 
+    private ?FieldLayout $fieldLayout = null;
+    private ?array $_companyContacts = [];
+    private ?array $_companies = [];
 
     // Public Static Methods
     // =========================================================================
@@ -94,7 +56,7 @@ class Company extends Element
      */
     public static function displayName(): string
     {
-        return Craft::t('teamleader-focus', 'Company');
+        return Craft::t('teamleader-focus', 'Contacts');
     }
 
     /**
@@ -102,7 +64,7 @@ class Company extends Element
      */
     public static function lowerDisplayName(): string
     {
-        return Craft::t('teamleader-focus', 'company');
+        return Craft::t('teamleader-focus', 'contact');
     }
 
     /**
@@ -110,7 +72,7 @@ class Company extends Element
      */
     public static function pluralDisplayName(): string
     {
-        return Craft::t('teamleader-focus', 'Companies');
+        return Craft::t('teamleader-focus', 'Contacts');
     }
 
     /**
@@ -118,7 +80,7 @@ class Company extends Element
      */
     public static function pluralLowerDisplayName(): string
     {
-        return Craft::t('teamleader-focus', 'companies');
+        return Craft::t('teamleader-focus', 'contacts');
     }
 
     /**
@@ -126,7 +88,7 @@ class Company extends Element
      */
     public static function refHandle(): ?string
     {
-        return 'company';
+        return 'contact';
     }
 
     /**
@@ -142,7 +104,7 @@ class Company extends Element
      */
     public static function hasTitles(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -175,7 +137,7 @@ class Company extends Element
      */
     public static function find(): ElementQueryInterface
     {
-        return Craft::createObject(CompanyQuery::class, [static::class]);
+        return Craft::createObject(ContactQuery::class, [static::class]);
     }
 
     /**
@@ -184,7 +146,7 @@ class Company extends Element
      */
     public static function createCondition(): ElementConditionInterface
     {
-        return Craft::createObject(CompanyCondition::class, [static::class]);
+        return Craft::createObject(ContactCondition::class, [static::class]);
     }
 
     // Protected Static Methods
@@ -198,7 +160,7 @@ class Company extends Element
         return [
             [
                 'key' => '*',
-                'label' => Craft::t('teamleader-focus', 'All companies'),
+                'label' => Craft::t('teamleader-focus', 'All contacts'),
             ],
         ];
     }
@@ -209,8 +171,9 @@ class Company extends Element
      */
     protected static function defineActions(string $source): array
     {
-        // List any bulk element actions here
-        return [];
+        return [
+            AssignCompanies::class,
+        ];
     }
 
     /**
@@ -286,14 +249,34 @@ class Company extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['vatNumber', 'nationalIdentificationNumber', 'emails', 'telephones', 'addresses', 'marketingMailsConsent', 'website'], 'safe'];
+        $rules[] = [[
+            'emails',
+            'firstName',
+            'language',
+            'lastName',
+            'marketingMailsConsent',
+            'salutation',
+            'telephones',
+        ], 'safe'];
 
         return $rules;
     }
 
+    /**
+     * Returns element metadata that should be shown within the editor sidebar.
+     *
+     * @return array The data, with keys representing the labels. The values can either be strings or callables.
+     * If a value is `false`, it will be omitted.
+     * @since 3.7.0
+     */
+    protected function metadata(): array
+    {
+        return [];
+    }
+
     protected function cpEditUrl(): ?string
     {
-        return sprintf('teamleader-focus/companies/%s', $this->getCanonicalId());
+        return sprintf('teamleader-focus/contacts/%s', $this->getCanonicalId());
     }
 
     /**
@@ -319,12 +302,12 @@ class Company extends Element
      */
     protected function route(): array|string|null
     {
-        // Define how companies should be routed when their URLs are requested
+        // Define how contacts should be routed when their URLs are requested
         return [
             'templates/render',
             [
                 'template' => 'site/template/path',
-                'variables' => ['company' => $this],
+                'variables' => ['contact' => $this],
             ]
         ];
     }
@@ -339,62 +322,29 @@ class Company extends Element
     {
         if (!$this->propagating) {
             if ($isNew) {
-                $companyRecord = new CompanyRecord();
-                $companyRecord->id = $this->id;
+                $contactRecord = new ContactRecord();
+                $contactRecord->id = $this->id;
             } else {
-                $companyRecord = CompanyRecord::findOne($this->id);
+                $contactRecord = ContactRecord::findOne($this->id);
             }
 
-            $companyRecord->fieldLayoutId = $this->fieldLayout->id;
+            $contactRecord->fieldLayoutId = $this->fieldLayout->id;
 
             //fields
-//            $companyRecord->addresses = $this->addresses;
-            $companyRecord->emails = $this->emails;
-            $companyRecord->marketingMailsConsent = $this->marketingMailsConsent;
-            $companyRecord->name = $this->title;
-            $companyRecord->nationalIdentificationNumber = $this->nationalIdentificationNumber;
-            $companyRecord->telephones = $this->telephones;
-            $companyRecord->vatNumber = $this->vatNumber;
-            $companyRecord->website = $this->website;
+           $contactRecord->emails = $this->emails;
+           $contactRecord->marketingMailsConsent = $this->marketingMailsConsent;
+           $contactRecord->firstName = $this->firstName;
+           $contactRecord->lastName = $this->lastName;
+           $contactRecord->salutation = $this->salutation;
+           $contactRecord->telephones = $this->telephones;
+           $contactRecord->language = $this->language;
 
-            Teamleader::$plugin->companiesConnector->sync($this, $isNew);
+           $contactRecord->teamleaderId = $this->teamleaderId;
 
-            $companyRecord->save(false);
+            $contactRecord->save(false);
         }
 
         parent::afterSave($isNew);
-    }
-
-    /**
-     * Gets the addresses.
-     *
-     * @return ElementCollection
-     */
-    public function getAddresses(): ElementCollection
-    {
-        return $this->createAddressQuery()->collect();
-    }
-
-    /**
-     * Returns a nested element manager for the company’s addresses.
-     *
-     * @return NestedElementManager
-     * @since 5.0.0
-     */
-    public function getAddressManager(): NestedElementManager
-    {
-        if (!isset($this->_addressManager)) {
-            $this->_addressManager = new NestedElementManager(
-                Address::class,
-                fn() => $this->createAddressQuery(),
-                [
-                    'attribute' => 'addresses',
-                    'propagationMethod' => PropagationMethod::None,
-                ],
-            );
-        }
-
-        return $this->_addressManager;
     }
 
     /**
@@ -431,7 +381,7 @@ class Company extends Element
 
     public function getPostEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('teamleader-focus/companies');
+        return UrlHelper::cpUrl('teamleader-focus/contacts');
     }
 
     public function prepareEditScreen(Response $response, string $containerId): void
@@ -440,9 +390,18 @@ class Company extends Element
         $response->crumbs([
             [
                 'label' => self::pluralDisplayName(),
-                'url' => UrlHelper::cpUrl('teamleader-focus/companies'),
+                'url' => UrlHelper::cpUrl('teamleader-focus/contacts'),
             ],
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     * @since 1.0.0
+     */
+    public function hasRevisions(): bool
+    {
+        return false;
     }
 
     /**
@@ -458,34 +417,11 @@ class Company extends Element
     }
 
     /**
-     * @return void
-     */
-    public function afterPopulate(): void
-    {
-        $this->addresses = $this->getAddresses();
-
-        $this->emails = $this->emails ?: [];
-        $this->telephones = $this->telephones ?: [];
-    }
-
-
-    /**
-     * @return array|string[]
-     */
-    public function attributes(): array
-    {
-        return array_merge(parent::attributes(), [
-            'emails',
-            'telephones',
-        ]);
-    }
-
-    /**
      * @return string|null
      */
     public function getUriFormat(): ?string
     {
-        // If companies should have URLs, define their URI format here
+        // If contacts should have URLs, define their URI format here
         return null;
     }
 
@@ -493,7 +429,13 @@ class Company extends Element
     {
         parent::init();
 
-        $this->getAddresses();
+        $this->_companyContacts = Teamleader::$plugin->getContacts()->getContactsCompaniesById($this->id);
+
+        if ($this->_companyContacts) {
+            $this->_companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts);
+        }
+
+//        Craft::dd($this->getContacts()->getContactsCompaniesById($this->id));
     }
 
     /**
@@ -510,7 +452,7 @@ class Company extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('teamleader-focus:view-companies');
+        return $user->can('teamleader-focus:view-contacts');
     }
 
     /**
@@ -527,7 +469,7 @@ class Company extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('teamleader-focus:save-companies');
+        return $user->can('teamleader-focus:save-contacts');
     }
 
     /**
@@ -544,7 +486,7 @@ class Company extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('teamleader-focus:save-companies');
+        return $user->can('teamleader-focus:save-contacts');
     }
 
     /**
@@ -561,7 +503,12 @@ class Company extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('teamleader-focus:delete-companies');
+        return $user->can('teamleader-focus:delete-contacts');
+    }
+
+    public function getCompanies(): array
+    {
+        return $this->_companies;
     }
 
     public function getArray($handle): array
@@ -575,17 +522,6 @@ class Company extends Element
         }
 
         return [];
-    }
-
-    // Private Methods
-    // =========================================================================
-
-    private function createAddressQuery(): AddressQuery
-    {
-        // @TODO: add owner to only get current elements
-//            ->owner($this)
-        return Address::find()
-            ->orderBy(['id' => SORT_ASC]);
     }
 
 }

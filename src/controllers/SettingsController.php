@@ -3,6 +3,7 @@
 namespace craftpulse\teamleader\controllers;
 
 use Craft;
+use craft\errors\MissingComponentException;
 use craft\helpers\UrlHelper;
 use craft\web\Controller;
 use craft\web\UrlManager;
@@ -10,7 +11,10 @@ use craft\web\UrlManager;
 use craftpulse\teamleader\services\Providers as ProviderService;
 use craftpulse\teamleader\Teamleader;
 
+use Throwable;
+use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
+use yii\web\MethodNotAllowedHttpException;
 use yii\web\NotFoundHttpException;
 use yii\web\Response;
 
@@ -37,6 +41,7 @@ class SettingsController extends Controller
 
     /**
      * @return Response|null
+     * @throws ForbiddenHttpException|Throwable
      */
     public function actionEdit(): ?Response
     {
@@ -72,11 +77,18 @@ class SettingsController extends Controller
         $variables['settings'] = Teamleader::$plugin->settings;
         $variables['connected'] = (bool)Teamleader::$plugin->providers->getToken();
 
-        return $this->renderTemplate('teamleader-focus/settings/_edit', $variables);
+        return $this->renderTemplate('teamleader-focus/settings/general/_edit', $variables);
     }
 
     /**
      * Saves the plugin settings
+     * @return Response|null
+     * @throws ForbiddenHttpException
+     * @throws MethodNotAllowedHttpException
+     * @throws NotFoundHttpException
+     * @throws Throwable
+     * @throws MissingComponentException
+     * @throws BadRequestHttpException
      */
     public function actionSave(): ?Response
     {

@@ -27,10 +27,10 @@ use craftpulse\teamleader\db\Table;
  * @property int|mixed|null $fieldLayoutId
  * @property int|mixed|null $teamleaderId
  */
-class CompanyRecord extends ActiveRecord
+class ContactCompanyRecords extends ActiveRecord
 {
     public static function tableName(): string
     {
-        return TABLE::COMPANIES;
+        return Table::CONTACTS_COMPANIES;
     }
 }

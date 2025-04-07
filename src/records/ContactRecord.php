@@ -18,19 +18,19 @@ use craftpulse\teamleader\db\Table;
  * @property array|null $emails Emails
  * @property int $id ID
  * @property int|null $marketingMailsConsent Marketing mails consent
- * @property string $name Name
- * @property string|null $nationalIdentificationNumber National identification number
+ * @property string $firstName 
+ * @property string $lastName
  * @property array|null $telephones Telephones
  * @property string $uid Uid
- * @property string|null $vatNumber Vat number
- * @property string|null $website Website
+ * @property string|null $language
+ * @property string|null $salutation
  * @property int|mixed|null $fieldLayoutId
  * @property int|mixed|null $teamleaderId
  */
-class CompanyRecord extends ActiveRecord
+class ContactRecord extends ActiveRecord
 {
     public static function tableName(): string
     {
-        return TABLE::COMPANIES;
+        return Table::CONTACTS;
     }
 }
