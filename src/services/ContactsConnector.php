@@ -67,7 +67,7 @@ class ContactsConnector extends Component
     private function _generatePayload(Contact $element): ?string
     {
         $payload = [
-            'context' => 'companies',
+            'context' => 'contacts',
             'name' => $element->title,
             'marketingMailsConsent' => $element->marketingMailsConsent,
             'emails' => $element->emails,
@@ -79,7 +79,7 @@ class ContactsConnector extends Component
             // @TODO: map custom fields -> teamleaderConnector
         ];
 
-        $endpoint = 'contact.add';
+        $endpoint = 'contacts.add';
 
         if ($element->teamleaderId) {
             $endpoint = 'contacts.update';
