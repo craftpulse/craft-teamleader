@@ -7,10 +7,16 @@ use craft\base\Element;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\helpers\Db;
 use craft\helpers\UrlHelper;
 use craft\web\CpScreenResponseBehavior;
+
+use craftpulse\teamleader\db\Table;
 use craftpulse\teamleader\elements\conditions\DealCondition;
 use craftpulse\teamleader\elements\db\DealQuery;
+
+use yii\base\InvalidConfigException;
+use yii\db\Exception;
 use yii\web\Response;
 
 /**
@@ -60,7 +66,7 @@ class Deal extends Element
 
     public static function isLocalized(): bool
     {
-        return false;
+        return true;
     }
 
     public static function hasStatuses(): bool
@@ -76,16 +82,25 @@ class Deal extends Element
         ];
     }
 
+    /**
+     * @throws InvalidConfigException
+     */
     public static function find(): ElementQueryInterface
     {
         return Craft::createObject(DealQuery::class, [static::class]);
     }
 
+    /**
+     * @throws InvalidConfigException
+     */
     public static function createCondition(): ElementConditionInterface
     {
         return Craft::createObject(DealCondition::class, [static::class]);
     }
 
+    /**
+     * @inheritdoc
+     */
     protected static function defineSources(string $context): array
     {
         return [
@@ -96,17 +111,26 @@ class Deal extends Element
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     protected static function defineActions(string $source): array
     {
         // List any bulk element actions here
         return [];
     }
 
+    /**
+     * @inheritdoc
+     */
     protected static function includeSetStatusAction(): bool
     {
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected static function defineSortOptions(): array
     {
         return [
@@ -134,6 +158,9 @@ class Deal extends Element
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     protected static function defineTableAttributes(): array
     {
         return [
@@ -148,6 +175,9 @@ class Deal extends Element
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
@@ -157,6 +187,9 @@ class Deal extends Element
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function defineRules(): array
     {
         return array_merge(parent::defineRules(), [
@@ -164,12 +197,18 @@ class Deal extends Element
         ]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getUriFormat(): ?string
     {
         // If deals should have URLs, define their URI format here
         return null;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function previewTargets(): array
     {
         $previewTargets = [];
@@ -185,6 +224,9 @@ class Deal extends Element
         return $previewTargets;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function route(): array|string|null
     {
         // Define how deals should be routed when their URLs are requested
@@ -197,6 +239,9 @@ class Deal extends Element
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
@@ -206,6 +251,9 @@ class Deal extends Element
         return $user->can('viewDeals');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function canSave(User $user): bool
     {
         if (parent::canSave($user)) {
@@ -215,6 +263,9 @@ class Deal extends Element
         return $user->can('saveDeals');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function canDuplicate(User $user): bool
     {
         if (parent::canDuplicate($user)) {
@@ -224,6 +275,9 @@ class Deal extends Element
         return $user->can('saveDeals');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function canDelete(User $user): bool
     {
         if (parent::canSave($user)) {
@@ -233,21 +287,33 @@ class Deal extends Element
         return $user->can('deleteDeals');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function canCreateDrafts(User $user): bool
     {
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
     protected function cpEditUrl(): ?string
     {
         return sprintf('deals/%s', $this->getCanonicalId());
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getPostEditUrl(): ?string
     {
         return UrlHelper::cpUrl('deals');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function prepareEditScreen(Response $response, string $containerId): void
     {
         /** @var Response|CpScreenResponseBehavior $response */
@@ -259,10 +325,16 @@ class Deal extends Element
         ]);
     }
 
+    /**
+     * @inheritdoc
+     * @throws Exception
+     */
     public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
-            // todo: update the `deals` table
+            Db::upsert(Table::DEALS, [
+                'id' => $this->id,
+            ]);
         }
 
         parent::afterSave($isNew);

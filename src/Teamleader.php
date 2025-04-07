@@ -285,7 +285,7 @@ class Teamleader extends Plugin {
     protected function settingsHtml(): ?string
     {
         return Craft::$app->getView()->renderTemplate(
-            'teamleader-focus/settings/_edit',
+            'teamleader-focus/settings/general/_edit',
             ['settings' => $this->getSettings()]
         );
     }

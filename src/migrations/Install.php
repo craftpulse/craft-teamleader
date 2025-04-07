@@ -90,7 +90,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->integer(),
+                    'teamleaderId' => $this->uid(),
 
                     // data
                     'emails' => $this->json(),
@@ -131,7 +131,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->integer(),
+                    'teamleaderId' => $this->uid(),
 
                     // data
                     'emails' => $this->json(),
@@ -174,9 +174,6 @@ class Install extends Migration
 
                     // connectors
                     'teamleaderId' => $this->integer(),
-
-                    // data
-
                 ]
             );
         }

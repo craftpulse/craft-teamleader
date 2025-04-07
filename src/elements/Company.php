@@ -20,8 +20,6 @@ use craftpulse\teamleader\elements\conditions\CompanyCondition;
 use craftpulse\teamleader\elements\db\CompanyQuery;
 use craftpulse\teamleader\records\CompanyRecord;
 
-use Illuminate\Support\Collection;
-
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
@@ -35,17 +33,55 @@ class Company extends Element
     // Traits
     // =========================================================================
 
-    // Constant Properties
+    // Public Properties
     // =========================================================================
+    /**
+     * @var bool|null
+     */
     public ?bool $marketingMailsConsent = false;
+
+    /**
+     * @var string|null
+     */
     public ?string $nationalIdentificationNumber = null;
+
+    /**
+     * @var string|null
+     */
     public ?string $vatNumber = null;
+
+    /**
+     * @var string|null
+     */
     public ?string $website = null;
+
+    /**
+     * @var array|string
+     */
     public array|string $emails = [];
+
+    /**
+     * @var array|string
+     */
     public array|string $telephones = [];
+
+    /**
+     * @var string
+     */
     public string $name = '';
+
+
+    // Private Properties
+    // =========================================================================
+    /**
+     * @var FieldLayout|null
+     */
     private ?FieldLayout $fieldLayout = null;
-    private ?int $teamleaderId = null;
+
+    /**
+     * @var int|null
+     */
+    public ?int $teamleaderId = null;
 
 
     // Public Static Methods
@@ -318,12 +354,9 @@ class Company extends Element
             $companyRecord->vatNumber = $this->vatNumber;
             $companyRecord->website = $this->website;
 
-            $companyRecord->save(false);
+            Teamleader::$plugin->companiesConnector->sync($this, $isNew);
 
-            if (!$isNew) {
-                $teamleaderId = $this->_generatePayload($this);
-                
-            }
+            $companyRecord->save(false);
         }
 
         parent::afterSave($isNew);
@@ -521,23 +554,6 @@ class Company extends Element
 
     // Private Methods
     // =========================================================================
-
-    private function _generatePayload(Element $element): ?string
-    {
-        $payload = [
-            'context' => 'companies',
-            'name' => $element->title,
-        ];
-
-        $response = Teamleader::$plugin->teamleaderConnector->deliverPayload($this, 'companies.add', $payload);
-
-        if ($response) {
-            // This id needs to be saved in the element
-            return $response['data']['id'] ?? null;
-        }
-
-        return null;
-    }
 
     private function createAddressQuery(): AddressQuery
     {
