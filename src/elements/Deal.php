@@ -556,7 +556,6 @@ class Deal extends Element
      */
     public function afterSave(bool $isNew): void
     {
-        Craft::dd($this->contact);
         if (!$this->propagating) {
             if ($isNew) {
                 $dealRecord = new DealRecord();
