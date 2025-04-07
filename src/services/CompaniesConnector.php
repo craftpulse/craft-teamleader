@@ -46,7 +46,6 @@ class CompaniesConnector extends Component
      * @param Company $element
      * @param bool $isNew
      * @return string|null
-     * @throws ExitException
      */
     public function sync(Company $element, bool $isNew): ?string
     {
