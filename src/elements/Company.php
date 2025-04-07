@@ -7,9 +7,11 @@ use craft\base\Element;
 use craft\elements\Address;
 use craft\elements\db\AddressQuery;
 use craft\elements\ElementCollection;
+use craft\elements\NestedElementManager;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\enums\PropagationMethod;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
@@ -66,6 +68,9 @@ class Company extends Element
      * @var null|FieldLayout Field layout
      */
     private ?FieldLayout $fieldLayout = null;
+
+    private ?int $teamleaderId = null;
+    private NestedElementManager $_addressManager;
 
 
     // Public Static Methods
@@ -352,6 +357,28 @@ class Company extends Element
     public function getAddresses(): ElementCollection
     {
         return $this->createAddressQuery()->collect();
+    }
+
+    /**
+     * Returns a nested element manager for the company’s addresses.
+     *
+     * @return NestedElementManager
+     * @since 5.0.0
+     */
+    public function getAddressManager(): NestedElementManager
+    {
+        if (!isset($this->_addressManager)) {
+            $this->_addressManager = new NestedElementManager(
+                Address::class,
+                fn() => $this->createAddressQuery(),
+                [
+                    'attribute' => 'addresses',
+                    'propagationMethod' => PropagationMethod::None,
+                ],
+            );
+        }
+
+        return $this->_addressManager;
     }
 
     /**

@@ -107,7 +107,6 @@ class Companies extends Component
                 ],
             ], [
                 'class' => AddressField::class,
-                'field' => 'addresses',
                 'attribute' => 'addresses',
                 'name' => 'addresses',
                 'label' => Craft::t('teamleader-focus', 'Addresses'),
