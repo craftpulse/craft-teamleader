@@ -27,6 +27,7 @@ use yii\base\InvalidConfigException;
  * @property Deals $deals
  * @property DealsConnector $dealsConnector
  * @property Quotations $quotations
+ * @property QuotationsConnector $quotationsConnector
  * @property Providers $providers
  * @property TeamleaderFocusConnector $teamleaderConnector
  *
@@ -44,6 +45,7 @@ trait ServicesTrait
                 'deals' => Deals::class,
                 'dealsConnector' => DealsConnector::class,
                 'quotations' => Quotations::class,
+                'quotationsConnector' => null,
                 'providers' => Providers::class,
                 'teamleaderConnector' => TeamleaderFocusConnector::class,
             ]
@@ -128,6 +130,17 @@ trait ServicesTrait
     public function getQuotations(): Quotations
     {
         return $this->get('quotations');
+    }
+
+    /**
+     * Returns the DealsConnector service
+     *
+     * @return DealsConnector The deals connector service
+     * @throws InvalidConfigException
+     */
+    public function getQuotationsConnector(): DealsConnector
+    {
+        return $this->get('quotationsConnector');
     }
 
     /**

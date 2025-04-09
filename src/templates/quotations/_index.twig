@@ -1,0 +1,14 @@
+{% extends '_layouts/elementindex' %}
+{% set title = 'Quotations'|t('app') %}
+{% set elementType = 'craftpulse\\teamleader\\elements\\Quotation' %}
+{% set canHaveDrafts = true %}
+
+{% block actionButton %}
+    {{ tag('a', {
+        class: 'btn submit add icon',
+        href: actionUrl('elements/create', {
+            elementType: elementType
+        }),
+        text: 'New quotation'|t('teamleader-focus'),
+    }) }}
+{% endblock %}

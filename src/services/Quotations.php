@@ -33,7 +33,7 @@ class Quotations extends Component
                 'inputType' => 'text',
                 'mandatory' => true,
                 'required' => true,
-                'disabled' => true,
+                'disabled' => false,
                 'width' => '100%',
             ],
         ];

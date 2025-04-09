@@ -458,29 +458,6 @@ class Deal extends Element
     {
         $components = [];
 
-//        $metaFieldsHtml = $this->metaFieldsHtml($static);
-//        if ($metaFieldsHtml !== '') {
-//            $components[] = Html::tag('div', $metaFieldsHtml, ['class' => 'meta']) .
-//                Html::tag('h2', Craft::t('app', 'Metadata'), ['class' => 'visually-hidden']);
-//        }
-
-//        $components[] = Html::beginTag('div') .
-//            Html::tag('legend', Craft::t('app', 'Status'), ['class' => 'h6']) .
-//            Cp::selectizeHtml([
-//                'id' => $this->id,
-//                'name' => 'Test',
-//                'label' => Craft::t('app', 'Test'),
-//                'options' => [
-//                    [
-//                        'label' => 'test',
-//                        'value' => 'test'
-//                    ]
-//                ],
-//                'value' => 'test',
-//                'disabled' => false,
-//            ]) .
-//            Html::endTag('div');
-
         $components[] = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_deals-sidebar', [
             'element' => $this,
             'companyConfig' => [

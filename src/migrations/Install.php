@@ -201,8 +201,12 @@ class Install extends Migration
                     'id' => $this->primaryKey(),
                     'dateCreated' => $this->dateTime()->notNull(),
                     'dateUpdated' => $this->dateTime()->notNull(),
-                    'dateExperiy' => $this->dateTime(),
+                    'expiryDate' => $this->dateTime(),
                     'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // connectors
+                    'teamleaderId' => $this->uid(),
 
                     // foreign keys
                     'dealId' => $this->integer(),
@@ -211,8 +215,8 @@ class Install extends Migration
                     // data
                     'currency' => $this->string()->notNull(),
                     'discounts' => $this->json(),
-                    'puchasePrice' => $this->float()->notNull(),
-                    'status' => $this->string(),
+                    'purchasePrice' => $this->float()->notNull(),
+                    'phase' => $this->string(),
                     'taxAmount' => $this->float()->notNull(),
                     'taxRate' => $this->float()->notNull(),
                     'taxableAmount' => $this->float()->notNull(),

@@ -11,12 +11,11 @@
 namespace craftpulse\teamleader;
 
 use Craft;
-use craft\base\ElementInterface;
-use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\User;
@@ -34,14 +33,14 @@ use craft\web\UrlManager;
 use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\elements\Contact;
 use craftpulse\teamleader\elements\Deal;
+use craftpulse\teamleader\elements\Quotation;
+use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
 use craftpulse\teamleader\helpers\ElementSidebarHelper;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
 use craftpulse\teamleader\services\ServicesTrait;
-
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
-
 use yii\base\Event;
 use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;
@@ -223,6 +222,13 @@ class Teamleader extends Plugin {
             ];
         }
 
+        if ($currentUser->can('teamleader-focus:view-quotations')) {
+            $subNavs['quotations'] = [
+                'label' => Craft::t('teamleader-focus', 'Quotations'),
+                'url' => 'teamleader-focus/quotations',
+            ];
+        }
+
         if ($currentUser->can('teamleader-focus:settings') && $editableSettings) {
             $subNavs['settings'] = [
                 'label' => 'Settings',
@@ -332,6 +338,8 @@ class Teamleader extends Plugin {
                         'teamleader-focus/contacts/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/deals' => ['template' => 'teamleader-focus/deals/_index.twig'],
                         'teamleader-focus/deals/<elementId:\d+>' => 'elements/edit',
+                        'teamleader-focus/quotations' => ['template' => 'teamleader-focus/quotations/_index.twig'],
+                        'teamleader-focus/quotations/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/settings' => 'teamleader-focus/settings/edit',
                         'teamleader-focus/teamleader-focus' => 'teamleader-focus/settings/edit',
                     ],
@@ -354,6 +362,7 @@ class Teamleader extends Plugin {
                 $event->types[] = Company::class;
                 $event->types[] = Contact::class;
                 $event->types[] = Deal::class;
+                $event->types[] = Quotation::class;
             });
     }
 
@@ -395,6 +404,14 @@ class Teamleader extends Plugin {
                         $event->fields[] = $field;
                     }
                 }
+
+                if ($fieldLayout->type === Quotation::class) {
+                    // Add our custom fields
+                    foreach ($this->getQuotations()->createFields() as $field)
+                    {
+                        $event->fields[] = $field;
+                    }
+                }
             }
         );
     }
@@ -426,6 +443,16 @@ class Teamleader extends Plugin {
                 /** @var Element $element */
                 $element = $event->sender;
                 $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'contact');
+            },
+        );
+
+        Event::on(
+            Quotation::class,
+            Element::EVENT_DEFINE_SIDEBAR_HTML,
+            function(DefineHtmlEvent $event) {
+                /** @var Element $element */
+                $element = $event->sender;
+                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'quotation');
             },
         );
 
@@ -483,6 +510,15 @@ class Teamleader extends Plugin {
                         ],
                         'teamleader-focus:delete-deals' => [
                             'label' => Craft::t('teamleader-focus', 'Delete deals'),
+                        ],
+                        'teamleader-focus:view-quotations' => [
+                            'label' => Craft::t('teamleader-focus', 'View quotations'),
+                        ],
+                        'teamleader-focus:save-quotations' => [
+                            'label' => Craft::t('teamleader-focus', 'Edit/Save quotations'),
+                        ],
+                        'teamleader-focus:delete-quotations' => [
+                            'label' => Craft::t('teamleader-focus', 'Delete quotations'),
                         ],
                         'teamleader-focus:view-sidebar-panel' => [
                             'label' => Craft::t('teamleader-focus', 'View sidebar panels'),

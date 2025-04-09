@@ -8,20 +8,20 @@
             </legend>
 
             <div class="input ltr">
-                {% include '_includes/forms/elementSelect.twig' with companyConfig %}
-            </div>
-        </div>
-        <div class="field">
-            <div class="heading">
-                {{ 'Contact'|t('teamleader-focus') }}
-            </div>
-
-            <div class="input ltr">
-                {% include '_includes/forms/elementSelect.twig' with contactConfig %}
+                {% include '_includes/forms/elementSelect.twig' with {
+                    allowAdd: true,
+                    allowRemove: true,
+                    elementType: dealType,
+                    elements: element.deals ?? [],
+                    name: 'deals',
+                    showCardsInGrid: false,
+                    viewMode: 'list',
+                } %}
             </div>
         </div>
     </div>
 </div>
+
 
 <div class="fieldset">
     <legend class="h6">
