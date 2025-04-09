@@ -187,6 +187,7 @@ class Install extends Migration
                     'dateClosing' => $this->dateTime(),
                     'phase' => $this->string(),
                     'reference' => $this->string(),
+                    'state' => $this->string(),
                     'summary' => $this->string(),
                     'webUrl' => $this->string(),
                 ]

@@ -181,11 +181,6 @@ class Contacts extends Component
                 'mandatory' => true,
                 'required' => false,
                 'width' => '100%',
-            ], [
-                'class' => CompaniesField::class,
-                'attribute' => 'companies',
-                'name' => 'companies',
-                'title' => Craft::t('teamleader-focus', 'Companies'),
             ]
         ];
 

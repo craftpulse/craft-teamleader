@@ -419,6 +419,16 @@ class Teamleader extends Plugin {
      */
     private function _registerSidebarPanels(): void
     {
+        Event::on(
+            Contact::class,
+            Element::EVENT_DEFINE_SIDEBAR_HTML,
+            function(DefineHtmlEvent $event) {
+                /** @var Element $element */
+                $element = $event->sender;
+                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'contact');
+            },
+        );
+
         foreach (ElementSidebarHelper::ELIGIBLE_ELEMENT_TYPES as $elementType) {
             if (class_exists($elementType)) {
                 Event::on(
@@ -433,16 +443,6 @@ class Teamleader extends Plugin {
                 );
             }
         }
-
-//        Event::on(
-//            Deal::class,
-//            Element::EVENT_DEFINE_SIDEBAR_HTML,
-//            function(DefineHtmlEvent $event) {
-//                /** @var Element $element */
-//                $element = $event->sender;
-//                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'deal');
-//            },
-//        );
     }
 
     /**

@@ -13,19 +13,20 @@ use craftpulse\teamleader\db\Table;
  * @package     Teamleader
  * @since       5.0.0
  *
- * @property string $dateCreated Date created
- * @property string $dateUpdated Date updated
- * @property int $id ID
- * @property string $uid Uid
- * @property int|mixed|null $fieldLayoutId
  * @property float $amount
+ * @property int $id ID
+ * @property int|mixed|null $fieldLayoutId
  * @property string $currency
  * @property string $dateClosed
  * @property string $dateClosing
- * @property string $reference
- * @property string $summary
- * @property string $webUrl
+ * @property string $dateCreated Date created
+ * @property string $dateUpdated Date updated
  * @property string $phase
+ * @property string $reference
+ * @property string $state
+ * @property string $summary
+ * @property string $uid Uid
+ * @property string $webUrl
  */
 class DealRecord extends ActiveRecord
 {

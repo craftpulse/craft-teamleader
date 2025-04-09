@@ -48,6 +48,7 @@ class Deal extends Element
     public ?int $contactId = null;
     public ?string $statusKey = null;
     public ?string $phase = null;
+    public ?string $state = null;
 
     public ?array $companies = null;
     public ?array $contacts = null;
@@ -243,10 +244,21 @@ class Deal extends Element
     {
         $rules = parent::defineRules();
 
+        $rules[] = [['companies', 'contacts'], 'required'];
+
         $rules[] = [[
-            'title',
-            'phase',
             'amount',
+            'companies',
+            'contacts',
+            'currency',
+            'dateClosed',
+            'dateClosing',
+            'phase',
+            'reference',
+            'state',
+            'summary',
+            'title',
+            'webUrl',
         ], 'safe'];
 
         return $rules;
@@ -300,7 +312,11 @@ class Deal extends Element
         parent::init();
 
         if ($this->id && $this->companyId) {
-            $this->company = Company::findOne($this->companyId);
+            $this->companies= Company::find($this->companyId)->all();
+        }
+
+        if ($this->id && $this->contactId) {
+            $this->contacts= Contact::find($this->contactId)->all();
         }
     }
     /**
@@ -426,23 +442,12 @@ class Deal extends Element
             Craft::t('app', 'Updated at') => $this->dateUpdated && !$this->getIsUnpublishedDraft()
                 ? $formatter->asDatetime($this->dateUpdated, Formatter::FORMAT_WIDTH_SHORT)
                 : false,
-            Craft::t('app', 'Notes') => function() {
-                if ($this->getIsRevision()) {
-                    $revision = $this;
-                } elseif ($this->getIsCanonical() || $this->isProvisionalDraft) {
-                    $element = $this->getCanonical(true);
-                    $revision = $element->getCurrentRevision();
-                }
-                if (!isset($revision)) {
-                    return false;
-                }
-                /** @var RevisionBehavior $behavior */
-                $behavior = $revision->getBehavior('revision');
-                if ($behavior->revisionNotes === null || $behavior->revisionNotes === '') {
-                    return false;
-                }
-                return Html::encode($behavior->revisionNotes);
-            },
+            Craft::t('app', 'Closing at') => $this->dateClosing && !$this->dateClosed
+                ? $formatter->asDatetime($this->dateClosing, Formatter::FORMAT_WIDTH_SHORT)
+                : false,
+            Craft::t('app', 'Closed at') => $this->dateClosed
+                ? $formatter->asDatetime($this->dateClosed, Formatter::FORMAT_WIDTH_SHORT)
+                : false,
         ]);
 
         return $html;
@@ -481,28 +486,26 @@ class Deal extends Element
             'companyConfig' => [
                 'allowAdd' => true,
                 'allowRemove' => true,
-                'elements' => $this->company ?? [],
+                'criteria' => ['siteId' => Craft::$app->sites->currentSite->id,],
                 'elementType' => Company::class,
-                'name' => 'companies',
-                'criteria' => [
-                    'siteId' => Craft::$app->sites->currentSite->id,
-                ],
+                'elements' => $this->companies ?? [],
                 'limit' => 1,
-                'viewMode' => 'list',
+                'name' => 'companies',
+                'required' => true,
                 'showCardsInGrid' => false,
+                'viewMode' => 'list',
             ],
             'contactConfig' => [
                 'allowAdd' => true,
                 'allowRemove' => true,
-                'elements' => $this->contact ?? [],
+                'criteria' => ['siteId' => Craft::$app->sites->currentSite->id,],
                 'elementType' => Contact::class,
-                'name' => 'contacts',
-                'criteria' => [
-                    'siteId' => Craft::$app->sites->currentSite->id,
-                ],
+                'elements' => $this->contacts ?? [],
                 'limit' => 1,
-                'viewMode' => 'list',
+                'name' => 'contacts',
+                'required' => true,
                 'showCardsInGrid' => false,
+                'viewMode' => 'list',
             ],
             'status' => $this->getStatus(),
         ]);
@@ -565,11 +568,24 @@ class Deal extends Element
             }
 
             $dealRecord->fieldLayoutId = $this->fieldLayout->id;
+
+            if ($this->companies) {
+                $dealRecord->companyId = $this->companies[0];
+            }
+
+            if ($this->contacts) {
+                $dealRecord->contactId = $this->contacts[0];
+            }
+
             $dealRecord->amount = $this->amount;
             $dealRecord->currency = $this->currency;
+            $dealRecord->dateClosed = $this->dateClosed;
+            $dealRecord->dateClosing = $this->dateClosing;
             $dealRecord->phase = $this->phase;
-
-//            Craft::dd($this->phase);
+            $dealRecord->reference = $this->reference;
+            $dealRecord->state = $this->state;
+            $dealRecord->summary = $this->summary;
+            $dealRecord->webUrl = $this->webUrl;
 
             $dealRecord->save(false);
         }

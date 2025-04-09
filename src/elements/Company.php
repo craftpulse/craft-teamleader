@@ -165,7 +165,7 @@ class Company extends Element
      */
     public static function hasStatuses(): bool
     {
-        return true;
+        return false;
     }
 
     /**

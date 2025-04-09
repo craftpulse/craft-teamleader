@@ -31,8 +31,8 @@
         {% set statuses = element.statuses %}
 
         {{ forms.hidden({
-            id: 'phase',
-            name: 'phase',
+            id: 'status',
+            name: 'status',
             value: element.status,
         }) }}
 
@@ -72,7 +72,7 @@
                 var val = $(data).data('val');
                 var label = $(data).data('label');
                 var color = $(data).data('color');
-                $('#phase').val(val);
+                $('#status').val(val);
 
                 var html = '<span class="status ' + color + '"></span>' + label;
                 $statusSelect.html(html);
