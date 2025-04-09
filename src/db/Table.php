@@ -20,4 +20,5 @@ abstract class Table
     public const CONTACTS = "{{%teamleader_focus_contacts}}";
     public const CONTACTS_COMPANIES = "{{%teamleader_focus_contacts_companies}}";
     public const DEALS = "{{%teamleader_focus_deals}}";
+    public const QUOTATIONS = "{{%teamleader_focus_quotations}}";
 }
