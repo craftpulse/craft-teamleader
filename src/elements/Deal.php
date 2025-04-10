@@ -4,16 +4,11 @@ namespace craftpulse\teamleader\elements;
 
 use Craft;
 use craft\base\Element;
-use craft\behaviors\RevisionBehavior;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\enums\Color;
 use craft\events\DefineHtmlEvent;
 use craft\events\DefineMetadataEvent;
-use craft\helpers\Cp;
-use craft\helpers\Db;
-use craft\helpers\Html;
 use craft\helpers\UrlHelper;
 use craft\i18n\Formatter;
 use craft\models\FieldLayout;
@@ -214,7 +209,6 @@ class Deal extends Element
         return [
             'slug' => ['label' => Craft::t('app', 'Slug')],
             'uri' => ['label' => Craft::t('app', 'URI')],
-            'link' => ['label' => Craft::t('app', 'Link'), 'icon' => 'world'],
             'id' => ['label' => Craft::t('app', 'ID')],
             'uid' => ['label' => Craft::t('app', 'UID')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
@@ -229,7 +223,6 @@ class Deal extends Element
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
-            'link',
             'dateCreated',
             // ...
         ];
@@ -244,22 +237,25 @@ class Deal extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['companies', 'contacts'], 'required'];
+        $rules[] = [['companies', 'contacts'], 'required', 'on' => self::SCENARIO_LIVE];
 
-        $rules[] = [[
-            'amount',
-            'companies',
-            'contacts',
-            'currency',
-            'dateClosed',
-            'dateClosing',
-            'phase',
-            'reference',
-            'state',
-            'summary',
-            'title',
-            'webUrl',
-        ], 'safe'];
+        $rules[] = [
+            [
+                'amount',
+                'companies',
+                'contacts',
+                'currency',
+                'dateClosed',
+                'dateClosing',
+                'phase',
+                'reference',
+                'state',
+                'summary',
+                'title',
+                'webUrl',
+            ],
+            'safe'
+        ];
 
         return $rules;
     }
@@ -312,11 +308,11 @@ class Deal extends Element
         parent::init();
 
         if ($this->id && $this->companyId) {
-            $this->companies= Company::find($this->companyId)->all();
+            $this->companies = Company::find($this->companyId)->all();
         }
 
         if ($this->id && $this->contactId) {
-            $this->contacts= Contact::find($this->contactId)->all();
+            $this->contacts = Contact::find($this->contactId)->all();
         }
     }
     /**

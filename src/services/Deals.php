@@ -33,7 +33,6 @@ class Deals extends Component
                 'inputType' => 'text',
                 'mandatory' => true,
                 'required' => true,
-                'disabled' => true,
                 'width' => '100%',
             ],
         ];
