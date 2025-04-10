@@ -24,9 +24,9 @@
 </div>
 
 
+<div class="fieldset">
 {% set statuses = element.statuses %}
 {% if  statuses[element.status] ?? null %}
-    <div class="fieldset">
         <legend class="h6">
             {{ 'Deal Status'|t('teamleader-focus') }}
         </legend>
@@ -62,7 +62,6 @@
                 label: 'Status' | t('formie'),
             }, statusField) }}
         </div>
-    </div>
 
     {% js %}
 
@@ -84,3 +83,5 @@
 
     {% endjs %}
 {% endif %}
+
+</div>

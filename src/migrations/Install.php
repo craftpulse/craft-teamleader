@@ -194,6 +194,22 @@ class Install extends Migration
             );
         }
 
+        if(!$this->db->tableExists(Table::DEALS_QUOTATIONS)) {
+            $this->createTable(
+                Table::DEALS_QUOTATIONS,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'uid' => $this->uid(),
+
+                    // foreign keys
+                    'dealId' => $this->integer(),
+                    'quotationId' => $this->integer(),
+                ]
+            );
+        }
+
         if(!$this->db->tableExists(Table::QUOTATIONS)) {
             $this->createTable(
                 Table::QUOTATIONS,
@@ -323,8 +339,9 @@ class Install extends Migration
 
         if(
             $this->db->tableExists(Table::DEALS) &&
-            $this->db->tableExists(TABLE::COMPANIES) &&
-            $this->db->tableExists(Table::CONTACTS)
+            $this->db->tableExists(Table::CONTACTS) &&
+            $this->db->tableExists(Table::QUOTATIONS) &&
+            $this->db->tableExists(Table::DEALS_QUOTATIONS)
         ) {
             $this->addForeignKey(
                 null,
@@ -340,6 +357,24 @@ class Install extends Migration
                 Table::DEALS,
                 'contactId',
                 Table::CONTACTS,
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
+            $this->addForeignKey(
+                null,
+                Table::DEALS_QUOTATIONS,
+                'dealId',
+                Table::DEALS,
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
+            $this->addForeignKey(
+                null,
+                Table::DEALS_QUOTATIONS,
+                'quotationId',
+                Table::QUOTATIONS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -379,8 +414,6 @@ class Install extends Migration
                 'CASCADE',
                 null,
             );
-
-
         }
     }
 

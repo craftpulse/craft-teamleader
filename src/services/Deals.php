@@ -8,6 +8,7 @@ use craft\fields\Addresses;
 use craft\fields\Table;
 
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
+use craftpulse\teamleader\fieldlayoutelements\QuotationField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
 
 use yii\base\Component;
@@ -33,6 +34,14 @@ class Deals extends Component
                 'inputType' => 'text',
                 'mandatory' => true,
                 'required' => true,
+                'width' => '100%',
+            ],
+            [
+                'class' => QuotationField::class,
+                'attribute' => 'quotations',
+                'name' => 'quotations',
+                'mandatory' => true,
+                'label' => Craft::t('teamleader-focus', 'Quotation'),
                 'width' => '100%',
             ],
         ];

@@ -22,6 +22,17 @@ use yii\base\Component;
  */
 class Quotations extends Component
 {
+    public function getCompaniesByIds(array $companyIds): ?array
+    {
+        $companies = Company::find()
+            ->id($companyIds)
+            ->all();
+
+        if (empty($companies)) return [];
+
+        return $companies;
+    }
+
     public function createFields(): ?array
     {
         $fields = [

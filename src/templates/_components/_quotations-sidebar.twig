@@ -4,7 +4,7 @@
     <div class="meta">
         <div class="field">
             <legend class="heading">
-                {{ 'Company'|t('teamleader-focus') }}
+                {{ 'Deal'|t('teamleader-focus') }}
             </legend>
 
             <div class="input ltr">
@@ -12,8 +12,29 @@
                     allowAdd: true,
                     allowRemove: true,
                     elementType: dealType,
-                    elements: element.deals ?? [],
-                    name: 'deals',
+                    elements: (element.deal ?? null) ? [element.deal] : [],
+                    name: 'deal',
+                    single: true,
+                    limit: 1,
+                    showCardsInGrid: false,
+                    viewMode: 'list',
+                } %}
+            </div>
+        </div>
+        <div class="field">
+            <legend class="heading">
+                {{ 'Product'|t('teamleader-focus') }}
+            </legend>
+
+            <div class="input ltr">
+                {% include '_includes/forms/elementSelect.twig' with {
+                    allowAdd: true,
+                    allowRemove: true,
+                    elementType: elementType,
+                    elements: (element.element ?? null) ? [element.element] : [],
+                    name: 'element',
+                    single: true,
+                    limit: 1,
                     showCardsInGrid: false,
                     viewMode: 'list',
                 } %}
@@ -22,52 +43,52 @@
     </div>
 </div>
 
+{% set statuses = element.statuses %}
+{% if  statuses[element.status] ?? null %}
+    <div class="fieldset">
+        <legend class="h6">
+            {{ 'Quotation Status'|t('teamleader-focus') }}
+        </legend>
+        <div class="meta">
 
-<div class="fieldset">
-    <legend class="h6">
-        {{ 'Deal Status'|t('teamleader-focus') }}
-    </legend>
-    <div class="meta">
-        {% set statuses = element.statuses %}
+            {{ forms.hidden({
+                id: 'phase',
+                name: 'phase',
+                value: element.status,
+            }) }}
 
-        {{ forms.hidden({
-            id: 'phase',
-            name: 'phase',
-            value: element.status,
-        }) }}
+            {% set statusField %}
+                <div>
+                    <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
+                        <span class="status {{ statuses[element.status].color ?? 'purple' }}"></span>{{ statuses[element.status].label ?? 'njet' }}
+                    </a>
 
-        {% set statusField %}
-            <div>
-                <a id="status-menu-btn" class="btn menubtn" href="javascript:;">
-                    <span class="status {{ statuses[element.status].color ?? 'purple' }}"></span>{{ statuses[element.status].label ?? 'njet' }}
-                </a>
-
-                <div class="menu" id="status-menu-select">
-                    <ul class="padded">
-                        {% for key, status in statuses %}
-                            <li>
-                                <a data-val="{{ key }}" data-label="{{ status.label }}" {% if element.status == key %}class="sel"{% endif %} data-color="{{ status.color }}"  href="javascript:;">
-                                    <span class="status {{ status.color }}"></span>{{ status.label }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                    <div class="menu" id="status-menu-select">
+                        <ul class="padded">
+                            {% for key, status in statuses %}
+                                <li>
+                                    <a data-val="{{ key }}" data-label="{{ status.label }}" {% if element.status == key %}class="sel"{% endif %} data-color="{{ status.color }}"  href="javascript:;">
+                                        <span class="status {{ status.color }}"></span>{{ status.label }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        {% endset %}
+            {% endset %}
 
-        {{ forms.field({
-            label: 'Status' | t('formie'),
-        }, statusField) }}
+            {{ forms.field({
+                label: 'Status' | t('formie'),
+            }, statusField) }}
+        </div>
     </div>
-</div>
 
-{% js %}
+    {% js %}
 
-    $(function () {
-        $statusSelect = $('#status-menu-btn');
+        $(function () {
+            $statusSelect = $('#status-menu-btn');
 
-        new Garnish.MenuBtn($statusSelect, {
+            new Garnish.MenuBtn($statusSelect, {
             onOptionSelect: function(data) {
                 var val = $(data).data('val');
                 var label = $(data).data('label');
@@ -76,8 +97,9 @@
 
                 var html = '<span class="status ' + color + '"></span>' + label;
                 $statusSelect.html(html);
-            }
+                }
+            });
         });
-    });
 
-{% endjs %}
+    {% endjs %}
+{% endif %}

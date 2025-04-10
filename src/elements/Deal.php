@@ -30,6 +30,15 @@ use yii\web\Response;
  */
 class Deal extends Element
 {
+    // Statuses
+    // -------------------------------------------------------------------------
+    public const STATUS_NEW = 'new';
+    public const STATUS_CONTACTED = 'contacted';
+    public const STATUS_MEETING_SCHEDULED = 'meeting_scheduled';
+    public const STATUS_QUOTATION_SENT = 'quotation_sent';
+    public const STATUS_ACCEPTED = 'accepted';
+    public const STATUS_REFUSED = 'refused';
+
     // Constant Properties
     // =========================================================================
     public ?float $amount = 0.00;
@@ -49,15 +58,6 @@ class Deal extends Element
     public ?array $contacts = null;
 
     private ?FieldLayout $fieldLayout = null;
-
-    // Statuses
-    // -------------------------------------------------------------------------
-    public const STATUS_NEW = 'new';
-    public const STATUS_CONTACTED = 'contacted';
-    public const STATUS_MEETING_SCHEDULED = 'meeting_scheduled';
-    public const STATUS_QUOTATION_SENT = 'quotation_sent';
-    public const STATUS_ACCEPTED = 'accepted';
-    public const STATUS_REFUSED = 'refused';
 
     // Public Static Methods
     // =========================================================================
@@ -549,6 +549,7 @@ class Deal extends Element
             if ($this->contacts) {
                 $dealRecord->contactId = $this->contacts[0];
             }
+
 
             $dealRecord->amount = $this->amount;
             $dealRecord->currency = $this->currency;
