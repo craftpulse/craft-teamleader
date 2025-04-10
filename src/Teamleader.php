@@ -191,8 +191,8 @@ class Teamleader extends Plugin {
      */
     public function getCpNavItem(): ?array
     {
-        $subNavs = [];
         $navItem = parent::getCpNavItem();
+        $subNavs = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         $editableSettings = true;
@@ -202,17 +202,17 @@ class Teamleader extends Plugin {
             $editableSettings = false;
         }
 
-        if ($currentUser->can('teamleader-focus:view-companies')) {
-            $subNavs['companies'] = [
-                'label' => Craft::t('teamleader-focus', 'Companies'),
-                'url' => 'teamleader-focus/companies',
-            ];
-        }
-
         if ($currentUser->can('teamleader-focus:view-contacts')) {
             $subNavs['contacts'] = [
                 'label' => Craft::t('teamleader-focus', 'Contacts'),
                 'url' => 'teamleader-focus/contacts',
+            ];
+        }
+
+        if ($currentUser->can('teamleader-focus:view-companies')) {
+            $subNavs['companies'] = [
+                'label' => Craft::t('teamleader-focus', 'Companies'),
+                'url' => 'teamleader-focus/companies',
             ];
         }
 
@@ -326,6 +326,10 @@ class Teamleader extends Plugin {
                         'teamleader-focus/deals' => ['template' => 'teamleader-focus/deals/_index.twig'],
                         'teamleader-focus/deals/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/settings' => 'teamleader-focus/settings/edit',
+                        'teamleader-focus/settings/general' => 'teamleader-focus/settings/edit',
+                        'teamleader-focus/settings/contacts' => 'teamleader-focus/settings/edit-contact-settings',
+                        'teamleader-focus/settings/companies' => 'teamleader-focus/settings/edit-company-settings',
+                        'teamleader-focus/settings/deals' => 'teamleader-focus/settings/edit-deal-settings',
                         'teamleader-focus/teamleader-focus' => 'teamleader-focus/settings/edit',
                     ],
                     $event->rules,

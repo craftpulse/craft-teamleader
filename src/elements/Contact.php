@@ -311,6 +311,7 @@ class Contact extends Element
     /**
      * @inheritdoc
      * @throws Exception|ExitException
+     * @throws \Throwable
      */
     public function afterSave(bool $isNew): void
     {
@@ -457,6 +458,9 @@ class Contact extends Element
         return null;
     }
 
+    /**
+     * @throws InvalidConfigException
+     */
     public function init(): void
     {
         parent::init();

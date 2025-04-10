@@ -28,6 +28,12 @@ class SettingsModel extends Model
      */
     public ?string $clientSecret = null;
 
+    /**
+     * @var bool if we want to sync custom fields
+     */
+    public bool $syncCustomFields = false;
+
+
     // Protected Methods
     // =========================================================================
 

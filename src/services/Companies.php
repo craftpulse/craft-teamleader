@@ -35,7 +35,7 @@ class Companies extends Component
 
     public function createFields(): ?array
     {
-        $fields = [
+        return [
             [
                 'class' => TextField::class,
                 'attribute' => 'title',
@@ -145,7 +145,5 @@ class Companies extends Component
                 'width' => '100%',
             ]
         ];
-
-        return $fields;
     }
 }

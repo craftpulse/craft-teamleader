@@ -1,0 +1,39 @@
+{% extends "teamleader-focus/_layouts/teamleader-cp.twig" %}
+{%- set selectedSubnavItem = 'settings' -%}
+
+{%- if readOnly -%}
+    {%- set contentNotice = readOnlyNotice() -%}
+{%- endif -%}
+
+{%- set navItems = {
+    'general': { title: 'General settings'|t('teamleader-focus') },
+    'contacts': { title: 'Contact settings'|t('teamleader-focus') },
+    'companies': { title: 'Company settings'|t('teamleader-focus') },
+    'deals': { title: 'Deal settings'|t('teamleader-focus') }
+} -%}
+
+{% if selectedItem is not defined %}
+    {% set selectedItem = craft.app.request.getSegment(3) %}
+{% endif %}
+
+{% block sidebar %}
+    <nav>
+        <ul>
+            {% for handle, item in navItems %}
+                {% if item.heading is defined %}
+                    <li class="heading">
+                        <span>
+                            {{ item.heading }}
+                        </span>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="{{ url('teamleader-focus/settings/'~handle) }}" {{ handle == selectedItem ? 'class="sel"'-}}>
+                            {{ item.title }}
+                        </a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+{% endblock %}

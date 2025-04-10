@@ -1,10 +1,12 @@
 {% requirePermission "teamleader-focus:settings" %}
 
-{% extends "teamleader-focus/_layouts/teamleader-cp.twig" %}
+{% extends "teamleader-focus/_layouts/teamleader-cp-settings.twig" %}
 {% import '_includes/forms.twig' as forms %}
+{% from 'teamleader-focus/_macros' import instructions %}
 
 {% set tabs = {
-    domains: { label: 'Teamleader Focus API'|t('teamleader-focus'), url: '#api' },
+    api: { label: 'Teamleader Focus API'|t('teamleader-focus'), url: '#api' },
+    general: { label: 'General'|t('teamleader-focus'), url: '#general' },
 } %}
 
 {% block actionButton %}
@@ -70,6 +72,22 @@
                         {%- endif -%}
                     </div>
                 {%- endif -%}
+            </div>
+        </div>
+    </div>
+
+    <div id="general" class="hidden flex-fields">
+        <div class="flex field">
+            <div class="flex-grow">
+                {% set info %}
+                    {{ 'With this setting enabled, the elements will display the custom fields made in Teamleader Focus.'|t('teamleader-focus') }}
+                {% endset %}
+                {{ forms.lightswitchField({
+                    label: "Synchronize custom fields"|t('teamleader-focus'),
+                    instructions: instructions("Whether custom fields should be displayed.", info),
+                    name: 'settings[syncCustomFields]',
+                    on: settings.syncCustomFields,
+                }) }}
             </div>
         </div>
     </div>

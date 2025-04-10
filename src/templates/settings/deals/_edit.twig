@@ -1,0 +1,23 @@
+{% requirePermission "teamleader-focus:settings" %}
+
+{% extends "teamleader-focus/_layouts/teamleader-cp-settings.twig" %}
+{% import '_includes/forms.twig' as forms %}
+
+{% set tabs = {
+    fieldLayout: { label: 'Deals Fields'|t('teamleader-focus'), url: '#fieldlayout' },
+} %}
+
+{% block actionButton %}
+    <input type="submit" class="btn submit" value="{{ 'Save'|t('app') }}">
+{% endblock %}
+
+{% block content %}
+    <input type="hidden" name="action" value="teamleader-focus/settings/save-deal-settings">
+    <input type="hidden" name="pluginHandle" value="teamleader-focus">
+
+    <div id="fieldlayout" class="flex-fields">
+        {{ forms.fieldLayoutDesignerField({
+            fieldLayout: fieldLayout,
+        }) }}
+    </div>
+{% endblock %}

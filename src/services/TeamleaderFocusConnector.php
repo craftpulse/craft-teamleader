@@ -89,6 +89,11 @@ class TeamleaderFocusConnector extends Component implements OAuthProviderInterfa
         return $this->token;
     }
 
+    public function getCustomFields(?string $context = null): array
+    {
+        return [];
+    }
+
     /**
      * @param string $vatNumber
      * @return bool|string
