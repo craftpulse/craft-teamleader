@@ -18,6 +18,7 @@ use craftpulse\teamleader\db\Table;
 use craftpulse\teamleader\elements\conditions\DealCondition;
 use craftpulse\teamleader\elements\db\DealQuery;
 
+use craftpulse\teamleader\records\DealQuotationRecord;
 use craftpulse\teamleader\records\DealRecord;
 use DateTime;
 
@@ -53,9 +54,6 @@ class Deal extends Element
     public ?string $statusKey = null;
     public ?string $phase = null;
     public ?string $state = null;
-
-    public ?array $companies = null;
-    public ?array $contacts = null;
 
     private ?FieldLayout $fieldLayout = null;
 
@@ -237,13 +235,13 @@ class Deal extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['companies', 'contacts'], 'required', 'on' => self::SCENARIO_LIVE];
+        $rules[] = [['companyId', 'contactId'], 'required', 'on' => self::SCENARIO_LIVE];
 
         $rules[] = [
             [
                 'amount',
-                'companies',
-                'contacts',
+                'companyId',
+                'contactId',
                 'currency',
                 'dateClosed',
                 'dateClosing',
@@ -303,18 +301,33 @@ class Deal extends Element
 
     // Public Methods
     // =========================================================================
-    public function init(): void
+    public function getCompanies(): array
     {
-        parent::init();
-
         if ($this->id && $this->companyId) {
-            $this->companies = Company::find($this->companyId)->all();
+            return Company::find($this->companyId)->all();
+        }
+        return [];
+    }
+
+    public function getContacts(): array
+    {
+        if ($this->id && $this->contactId) {
+            return Contact::find($this->contactId)->all();
+        }
+        return [];
+    }
+
+    public function getQuotations(): array
+    {
+        if ($this->id) {
+            return Quotation::find()
+                ->where(['dealId' => $this->id])
+                ->all();
         }
 
-        if ($this->id && $this->contactId) {
-            $this->contacts = Contact::find($this->contactId)->all();
-        }
+        return [];
     }
+
     /**
      * @inheritdoc
      */
@@ -463,9 +476,10 @@ class Deal extends Element
                 'elementType' => Company::class,
                 'elements' => $this->companies ?? [],
                 'limit' => 1,
-                'name' => 'companies',
+                'name' => 'companyId',
                 'required' => true,
                 'showCardsInGrid' => false,
+                'single' => true,
                 'viewMode' => 'list',
             ],
             'contactConfig' => [
@@ -475,9 +489,10 @@ class Deal extends Element
                 'elementType' => Contact::class,
                 'elements' => $this->contacts ?? [],
                 'limit' => 1,
-                'name' => 'contacts',
+                'name' => 'contactId',
                 'required' => true,
                 'showCardsInGrid' => false,
+                'single' => true,
                 'viewMode' => 'list',
             ],
             'status' => $this->getStatus(),
@@ -540,17 +555,16 @@ class Deal extends Element
                 $dealRecord = DealRecord::findOne($this->id);
             }
 
+            //            $teamleaderId = Teamleader::$plugin->quotesConnector->sync($this, $isNew);
+//
+//            if ($teamleaderId) {
+//                $contactRecord->teamleaderId = $teamleaderId;
+//            }
+
             $dealRecord->fieldLayoutId = $this->fieldLayout->id;
 
-            if ($this->companies) {
-                $dealRecord->companyId = $this->companies[0];
-            }
-
-            if ($this->contacts) {
-                $dealRecord->contactId = $this->contacts[0];
-            }
-
-
+            $dealRecord->companyId = $this->companyId;
+            $dealRecord->contactId = $this->contactId;
             $dealRecord->amount = $this->amount;
             $dealRecord->currency = $this->currency;
             $dealRecord->dateClosed = $this->dateClosed;
@@ -565,5 +579,11 @@ class Deal extends Element
         }
 
         parent::afterSave($isNew);
+    }
+
+
+    public function getArray($handle): array
+    {
+        return $this[$handle];
     }
 }

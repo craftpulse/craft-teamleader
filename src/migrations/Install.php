@@ -194,22 +194,6 @@ class Install extends Migration
             );
         }
 
-        if(!$this->db->tableExists(Table::DEALS_QUOTATIONS)) {
-            $this->createTable(
-                Table::DEALS_QUOTATIONS,
-                [
-                    'id' => $this->primaryKey(),
-                    'dateCreated' => $this->dateTime()->notNull(),
-                    'dateUpdated' => $this->dateTime()->notNull(),
-                    'uid' => $this->uid(),
-
-                    // foreign keys
-                    'dealId' => $this->integer(),
-                    'quotationId' => $this->integer(),
-                ]
-            );
-        }
-
         if(!$this->db->tableExists(Table::QUOTATIONS)) {
             $this->createTable(
                 Table::QUOTATIONS,
@@ -226,7 +210,7 @@ class Install extends Migration
 
                     // foreign keys
                     'dealId' => $this->integer(),
-                    'elementId' => $this->integer(),
+                    'productId' => $this->integer(),
 
                     // data
                     'currency' => $this->string()->notNull(),
@@ -281,7 +265,7 @@ class Install extends Migration
                 null,
                 Table::COMPANIES_ADDRESSES,
                 'companyId',
-                Table::COMPANIES,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -309,7 +293,7 @@ class Install extends Migration
                 null,
                 Table::CONTACTS_COMPANIES,
                 'companyId',
-                Table::COMPANIES,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -318,7 +302,7 @@ class Install extends Migration
                 null,
                 Table::CONTACTS_COMPANIES,
                 'contactId',
-                Table::CONTACTS,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -340,14 +324,13 @@ class Install extends Migration
         if(
             $this->db->tableExists(Table::DEALS) &&
             $this->db->tableExists(Table::CONTACTS) &&
-            $this->db->tableExists(Table::QUOTATIONS) &&
-            $this->db->tableExists(Table::DEALS_QUOTATIONS)
+            $this->db->tableExists(Table::QUOTATIONS)
         ) {
             $this->addForeignKey(
                 null,
                 Table::DEALS,
                 'companyId',
-                Table::COMPANIES,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -356,25 +339,7 @@ class Install extends Migration
                 null,
                 Table::DEALS,
                 'contactId',
-                Table::CONTACTS,
-                'id',
-                'CASCADE',
-                'CASCADE'
-            );
-            $this->addForeignKey(
-                null,
-                Table::DEALS_QUOTATIONS,
-                'dealId',
-                Table::DEALS,
-                'id',
-                'CASCADE',
-                'CASCADE'
-            );
-            $this->addForeignKey(
-                null,
-                Table::DEALS_QUOTATIONS,
-                'quotationId',
-                Table::QUOTATIONS,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -399,7 +364,7 @@ class Install extends Migration
                 null,
                 Table::QUOTATIONS,
                 'dealId',
-                Table::DEALS,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -408,7 +373,7 @@ class Install extends Migration
             $this->addForeignKey(
                 null,
                 Table::QUOTATIONS,
-                'elementId',
+                'productId',
                 CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',

@@ -8,6 +8,7 @@ use craft\fields\Addresses;
 use craft\fields\Table;
 
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
+use craftpulse\teamleader\fieldlayoutelements\QuotationInfoField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
 
 use yii\base\Component;
@@ -22,17 +23,6 @@ use yii\base\Component;
  */
 class Quotations extends Component
 {
-    public function getCompaniesByIds(array $companyIds): ?array
-    {
-        $companies = Company::find()
-            ->id($companyIds)
-            ->all();
-
-        if (empty($companies)) return [];
-
-        return $companies;
-    }
-
     public function createFields(): ?array
     {
         $fields = [
@@ -47,6 +37,13 @@ class Quotations extends Component
                 'disabled' => false,
                 'width' => '100%',
             ],
+            [
+                'class' => QuotationInfoField::class,
+                'attribute' => 'quotations',
+                'name' => 'quotations',
+                'mandatory' => true,
+                'width' => '100%',
+            ]
         ];
 
         return $fields;

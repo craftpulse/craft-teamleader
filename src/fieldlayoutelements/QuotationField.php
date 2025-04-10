@@ -41,6 +41,29 @@ class QuotationField extends BaseNativeField
      */
     protected function inputHtml(?ElementInterface $element = null, bool $static = false): ?string
     {
-        return '<div>test</div>';
+        if (($element->quotations ?? null) == null) {
+            return '<p>'.Craft::t('teamleader-focus', 'No quotations in this deal').'</p>';
+        }
+
+        $html = '<table style="width:100%;">';
+        $html .= '<tr>';
+        $html .= '<th>Title</th>';
+        $html .= '<th>Amount</th>';
+        $html .= '<th>Product</th>';
+        $html .= '<th>Link</th>';
+        $html .= '</tr>';
+
+        foreach($element->quotations as $quotation) {
+            $html .= '<tr>';
+            $html .= '<td>'.$quotation->title.'</td>';
+            $html .= '<td>'.$quotation->totalTaxInclusiveAmount.' '.$quotation->currency.'</td>';
+            $html .= '<td><a href="'.$quotation->product->getCpEditUrl().'" title="Visit webpage" rel="noopener" target="_blank" aria-label="View">'.$quotation->product->title.'</a></td>';
+            $html .= '<td><a href="'.$quotation->getCpEditUrl().'" title="Visit webpage" rel="noopener" target="_blank" aria-label="View">View</a></td>';
+            $html .= '</tr>';
+        }
+
+        $html .= '</table>';
+
+        return $html;
     }
 }

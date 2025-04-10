@@ -28,7 +28,7 @@ use craftpulse\teamleader\db\Table;
  * @property float $totalTaxInclusiveAmount
  * @property string|array $quotationLines
  * @property string $dealId
- * @property string $elementId
+ * @property string $productId
  * @property string $uid Uid
  */
 class QuotationRecord extends ActiveRecord

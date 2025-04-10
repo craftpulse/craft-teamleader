@@ -27,6 +27,8 @@ use craftpulse\teamleader\db\Table;
  * @property string $summary
  * @property string $uid Uid
  * @property string $webUrl
+ * @property int $companyId
+ * @property int $contactId
  */
 class DealRecord extends ActiveRecord
 {

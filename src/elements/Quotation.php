@@ -10,6 +10,7 @@ use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
 use craft\events\DefineHtmlEvent;
+use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
@@ -75,9 +76,13 @@ class Quotation extends Element
      */
     public float $totalTaxInclusiveAmount = 0.00;
     /**
-     * @var array|string
+     * @var string|null
      */
-    public array|string $quotationLines = [];
+    public ?string $quotationLines = null;
+    /**
+     * @var string|null
+     */
+    public ?array $arrQuotationLines = [];
 
     /**
      * @var array|null
@@ -85,21 +90,9 @@ class Quotation extends Element
     public ?int $dealId = null;
 
     /**
-     * @var null|Deal
-     */
-    public Deal|string|null $deal = null;
-
-    /**
      * @var array|null
      */
-    public ?int $elementId = null;
-
-    /**
-     * @var null|string|Element
-     */
-    public Element|string|null $element = null;
-
-    public ?array $elementTypes = null;
+    public ?int $productId = null;
 
     /**
      * @var FieldLayout|null
@@ -324,21 +317,21 @@ class Quotation extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['deal','element'], 'required', 'on' => self::SCENARIO_LIVE];
+        $rules[] = [['dealId','productId'], 'required', 'on' => self::SCENARIO_LIVE];
 
         $rules[] = [[
-            'deal',
-            'element',
-            'phase',
             'currency',
+            'dealId',
             'discounts',
+            'phase',
+            'productId',
             'purchasePrice',
+            'quotationLines',
             'taxAmount',
             'taxRate',
             'taxableAmount',
             'totalTaxExclusiveAmount',
             'totalTaxInclusiveAmount',
-            'quotationLines'
         ], 'safe'];
 
         return $rules;
@@ -388,27 +381,37 @@ class Quotation extends Element
 
     // Public Methods
     // =========================================================================
-    /**
-     * @return void
-     * @throws \yii\base\InvalidConfigException
-     */
     public function init(): void
     {
         parent::init();
 
+        if ($this->quotationLines) {
+            $this->arrQuotationLines = Json::decode($this->quotationLines);
+        }
+    }
+
+    public function getDeal(): ?Deal
+    {
         if ($this->id && $this->dealId) {
-            $this->deal = Deal::findOne($this->dealId);
+            return Deal::findOne($this->dealId);
         }
 
-        if ($this->id && $this->elementId) {
-            $el = (new Query())->from(CraftTable::ELEMENTS)->where(['id' => $this->elementId])->one();
+        return null;
+    }
+
+    public function getProduct(): ?Element
+    {
+        if ($this->id && $this->dealId) {
+            $el = (new Query())->from(CraftTable::ELEMENTS)->where(['id' => $this->productId])->one();
 
             if ($el) {
-                $this->element = Craft::$app->getElements()->createElementQuery($el['type'])
+                return Craft::$app->getElements()->createElementQuery($el['type'])
                     ->id($el['id'])
                     ->one();
             }
         }
+
+        return null;
     }
 
     /**
@@ -596,16 +599,8 @@ class Quotation extends Element
 
             $record->fieldLayoutId = $this->fieldLayout->id;
 
-            if ($this->deal) {
-                $this->dealId = $this->deal->id ?? $this->deal;
-            }
-
-            if ($this->element) {
-                $this->elementId = $this->element->id ?? $this->element;
-            }
-
             $record->dealId = $this->dealId;
-            $record->elementId = $this->elementId;
+            $record->productId = $this->productId;
             $record->currency = $this->currency;
             $record->discounts = $this->discounts;
             $record->purchasePrice = $this->purchasePrice;
@@ -618,18 +613,6 @@ class Quotation extends Element
             $record->quotationLines = $this->quotationLines;
 
             $success = $record->save(false);
-
-            if ($success) {
-                $relation = DealQuotationRecord::find()->where(['quotationId' => $this->id])->one();
-
-                if (is_null($relation)) {
-                    $relation = new DealQuotationRecord();
-                    $relation->quotationId = $this->id;
-                }
-
-                $relation->dealId = $this->dealId;
-                $relation->save();
-            }
         }
 
         parent::afterSave($isNew);

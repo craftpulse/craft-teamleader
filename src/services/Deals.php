@@ -41,7 +41,7 @@ class Deals extends Component
                 'attribute' => 'quotations',
                 'name' => 'quotations',
                 'mandatory' => true,
-                'label' => Craft::t('teamleader-focus', 'Quotation'),
+                'label' => Craft::t('teamleader-focus', 'Quotations'),
                 'width' => '100%',
             ],
         ];
