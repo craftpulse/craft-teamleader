@@ -6,9 +6,9 @@ use Craft;
 use craft\elements\conditions\ElementCondition;
 
 /**
- * Contact condition
+ * Quotation condition
  */
-class ContactCondition extends ElementCondition
+class QuotationCondition extends ElementCondition
 {
 //    protected function selectableConditionRules(): array
 //    {

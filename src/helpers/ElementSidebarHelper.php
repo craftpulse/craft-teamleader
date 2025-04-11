@@ -65,16 +65,27 @@ class ElementSidebarHelper
             return '';
         }
 
-        $connected = (bool)Teamleader::$plugin->providers->getToken();
+        $connected = (bool) Teamleader::$plugin->providers->getToken();
 
         if (empty(Teamleader::$plugin->settings->clientId) && empty(Teamleader::$plugin->settings->clientSecret) && !$connected) {
             return '';
         }
 
-        $html = Html::beginTag('fieldset', ['class' => 'teamleader-focus-element-sidebar']) .
-            Html::tag('legend', 'Teamleader Focus Status', ['class' => 'h6']) .
-            Html::tag('div', $type === 'teamleader' ? self::metaFieldsHtmlTeamleader($element) : self::metaFieldsHtmlDeals($element), ['class' => 'meta']) .
-            Html::endTag('fieldset');
+        $html = '';
+
+        switch ($type) {
+            case 'contact':
+                $html = Html::beginTag('fieldset', ['class' => 'teamleader-focus-element-sidebar']) .
+                    Html::tag('legend', Craft::t('teamleader-focus', 'Company'), ['class' => 'h6']) .
+                    Html::tag('div', self::metaFieldsHtmlContacts($element), ['class' => 'meta']) .
+                    Html::endTag('fieldset');
+                break;
+            default:
+                $html = Html::beginTag('fieldset', ['class' => 'teamleader-focus-element-sidebar']) .
+                    Html::tag('legend', Craft::t('teamleader-focus', 'Teamleader Focus Status'), ['class' => 'h6']) .
+                    Html::tag('div', self::metaFieldsHtmlTeamleader($element), ['class' => 'meta']) .
+                    Html::endTag('fieldset');
+        }
 
         $event = new DefineElementEditorHtmlEvent([
             'element' => $element,
@@ -125,8 +136,28 @@ class ElementSidebarHelper
     {
         // Need logic here to create this currently based on the element, we need an element with the data from our database
 
-        $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_deals-sidebar', [
+        $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_contacts-sidebar', [
             'variable' => true,
+            'companyType' => Company::class,
+            'element' => $element,
+        ]);
+
+        $event = new DefineElementEditorHtmlEvent([
+            'element' => $element,
+            'html' => $html,
+        ]);
+
+        Event::trigger(self::class, self::EVENT_DEFINE_META_FIELDS_HTML, $event);
+
+        return $event->html;
+    }
+
+    private static function metaFieldsHtmlQuotations(Element $element): string
+    {
+        $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_quotations-sidebar', [
+            'variable' => true,
+            'dealType' => Deal::class,
+            'element' => $element,
         ]);
 
         $event = new DefineElementEditorHtmlEvent([

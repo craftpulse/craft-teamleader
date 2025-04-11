@@ -8,7 +8,7 @@ use craft\fields\Addresses;
 use craft\fields\Table;
 
 use craftpulse\teamleader\fieldlayoutelements\AddressField;
-use craftpulse\teamleader\fieldlayoutelements\QuotationField;
+use craftpulse\teamleader\fieldlayoutelements\QuotationInfoField;
 use craftpulse\teamleader\fieldlayoutelements\TableField;
 
 use yii\base\Component;
@@ -21,7 +21,7 @@ use yii\base\Component;
  * @since       5.0.0
  *
  */
-class Deals extends Component
+class Quotations extends Component
 {
     public function createFields(): ?array
     {
@@ -34,16 +34,16 @@ class Deals extends Component
                 'inputType' => 'text',
                 'mandatory' => true,
                 'required' => true,
+                'disabled' => false,
                 'width' => '100%',
             ],
             [
-                'class' => QuotationField::class,
+                'class' => QuotationInfoField::class,
                 'attribute' => 'quotations',
                 'name' => 'quotations',
                 'mandatory' => true,
-                'label' => Craft::t('teamleader-focus', 'Quotations'),
                 'width' => '100%',
-            ],
+            ]
         ];
 
         return $fields;

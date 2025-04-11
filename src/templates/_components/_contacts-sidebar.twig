@@ -1,0 +1,23 @@
+{% import '_includes/forms' as forms %}
+
+<div class="fieldset">
+    <div class="meta">
+        <div class="field">
+            <legend class="heading">
+                {{ 'Company'|t('teamleader-focus') }}
+            </legend>
+
+            <div class="input ltr">
+                {% include '_includes/forms/elementSelect.twig' with {
+                    allowAdd: true,
+                    allowRemove: true,
+                    elementType: companyType,
+                    elements: element.companies ?? [],
+                    name: 'companies',
+                    showCardsInGrid: false,
+                    viewMode: 'list',
+                } %}
+            </div>
+        </div>
+    </div>
+</div>

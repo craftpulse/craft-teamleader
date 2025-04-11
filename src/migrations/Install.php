@@ -61,6 +61,7 @@ class Install extends Migration
     {
         $this->dropForeignKeys();
         $this->dropTables();
+
         Craft::$app->getFields()->deleteLayoutsByType(CompanyElement::class);
         Craft::$app->getFields()->deleteLayoutsByType(ContactElement::class);
         Craft::$app->getFields()->deleteLayoutsByType(DealElement::class);
@@ -90,7 +91,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->integer(),
+                    'teamleaderId' => $this->uid(),
 
                     // data
                     'emails' => $this->json(),
@@ -113,7 +114,7 @@ class Install extends Migration
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
 
-                    //foreign keys
+                    // foreign keys
                     'addressId' => $this->integer(),
                     'companyId' => $this->integer(),
                 ]
@@ -131,7 +132,7 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->integer(),
+                    'teamleaderId' => $this->uid(),
 
                     // data
                     'emails' => $this->json(),
@@ -155,7 +156,7 @@ class Install extends Migration
                     'dateUpdated' => $this->dateTime()->notNull(),
                     'uid' => $this->uid(),
 
-                    //foreign keys
+                    // foreign keys
                     'companyId' => $this->integer(),
                     'contactId' => $this->integer(),
                 ]
@@ -173,7 +174,55 @@ class Install extends Migration
                     'fieldLayoutId' => $this->integer(),
 
                     // connectors
-                    'teamleaderId' => $this->integer(),
+                    'teamleaderId' => $this->uid(),
+
+                    // foreign keys
+                    'companyId' => $this->integer(),
+                    'contactId' => $this->integer(),
+
+                    // data
+                    'amount' => $this->float()->notNull(),
+                    'currency' => $this->string()->notNull(),
+                    'dateClosed' => $this->dateTime(),
+                    'dateClosing' => $this->dateTime(),
+                    'phase' => $this->string(),
+                    'reference' => $this->string(),
+                    'state' => $this->string(),
+                    'summary' => $this->string(),
+                    'webUrl' => $this->string(),
+                ]
+            );
+        }
+
+        if(!$this->db->tableExists(Table::QUOTATIONS)) {
+            $this->createTable(
+                Table::QUOTATIONS,
+                [
+                    'id' => $this->primaryKey(),
+                    'dateCreated' => $this->dateTime()->notNull(),
+                    'dateUpdated' => $this->dateTime()->notNull(),
+                    'expiryDate' => $this->dateTime(),
+                    'uid' => $this->uid(),
+                    'fieldLayoutId' => $this->integer(),
+
+                    // connectors
+                    'teamleaderId' => $this->uid(),
+
+                    // foreign keys
+                    'dealId' => $this->integer(),
+                    'productId' => $this->integer(),
+
+                    // data
+                    'currency' => $this->string()->notNull(),
+                    'discounts' => $this->json(),
+                    'purchasePrice' => $this->float()->notNull(),
+                    'phase' => $this->string(),
+                    'taxAmount' => $this->float()->notNull(),
+                    'taxRate' => $this->float()->notNull(),
+                    'taxableAmount' => $this->float()->notNull(),
+                    'totalTaxExclusiveAmount' => $this->float()->notNull(),
+                    'totalTaxInclusiveAmount' => $this->float()->notNull(),
+                    'quotationLines' => $this->json(),
                 ]
             );
         }
@@ -216,7 +265,7 @@ class Install extends Migration
                 null,
                 Table::COMPANIES_ADDRESSES,
                 'companyId',
-                Table::COMPANIES,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -244,7 +293,7 @@ class Install extends Migration
                 null,
                 Table::CONTACTS_COMPANIES,
                 'companyId',
-                Table::COMPANIES,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -253,7 +302,7 @@ class Install extends Migration
                 null,
                 Table::CONTACTS_COMPANIES,
                 'contactId',
-                Table::CONTACTS,
+                CraftTable::ELEMENTS,
                 'id',
                 'CASCADE',
                 'CASCADE'
@@ -269,6 +318,66 @@ class Install extends Migration
                 'id',
                 'CASCADE',
                 'CASCADE'
+            );
+        }
+
+        if(
+            $this->db->tableExists(Table::DEALS) &&
+            $this->db->tableExists(Table::CONTACTS) &&
+            $this->db->tableExists(Table::QUOTATIONS)
+        ) {
+            $this->addForeignKey(
+                null,
+                Table::DEALS,
+                'companyId',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
+            $this->addForeignKey(
+                null,
+                Table::DEALS,
+                'contactId',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
+        }
+
+        if(
+            $this->db->tableExists(Table::DEALS) &&
+            $this->db->tableExists(Table::QUOTATIONS)
+        ) {
+            $this->addForeignKey(
+                null,
+                Table::QUOTATIONS,
+                'id',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
+
+            $this->addForeignKey(
+                null,
+                Table::QUOTATIONS,
+                'dealId',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                'CASCADE'
+            );
+
+            $this->addForeignKey(
+                null,
+                Table::QUOTATIONS,
+                'productId',
+                CraftTable::ELEMENTS,
+                'id',
+                'CASCADE',
+                null,
             );
         }
     }
@@ -297,6 +406,10 @@ class Install extends Migration
         if ($this->db->tableExists(Table::DEALS)) {
             Db::dropAllForeignKeysToTable(Table::DEALS);
         }
+
+        if ($this->db->tableExists(Table::QUOTATIONS)) {
+            Db::dropAllForeignKeysToTable(Table::QUOTATIONS);
+        }
     }
 
     /**
@@ -322,6 +435,10 @@ class Install extends Migration
 
         if (Craft::$app->db->schema->getTableSchema(Table::DEALS)) {
             $this->dropTable(Table::DEALS);
+        }
+
+        if (Craft::$app->db->schema->getTableSchema(Table::QUOTATIONS)) {
+            $this->dropTable(Table::QUOTATIONS);
         }
     }
 }

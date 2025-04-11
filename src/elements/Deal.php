@@ -7,13 +7,20 @@ use craft\base\Element;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\helpers\Db;
+use craft\events\DefineHtmlEvent;
+use craft\events\DefineMetadataEvent;
 use craft\helpers\UrlHelper;
+use craft\i18n\Formatter;
+use craft\models\FieldLayout;
 use craft\web\CpScreenResponseBehavior;
 
 use craftpulse\teamleader\db\Table;
 use craftpulse\teamleader\elements\conditions\DealCondition;
 use craftpulse\teamleader\elements\db\DealQuery;
+
+use craftpulse\teamleader\records\DealQuotationRecord;
+use craftpulse\teamleader\records\DealRecord;
+use DateTime;
 
 use yii\base\InvalidConfigException;
 use yii\db\Exception;
@@ -24,6 +31,34 @@ use yii\web\Response;
  */
 class Deal extends Element
 {
+    // Statuses
+    // -------------------------------------------------------------------------
+    public const STATUS_NEW = 'new';
+    public const STATUS_CONTACTED = 'contacted';
+    public const STATUS_MEETING_SCHEDULED = 'meeting_scheduled';
+    public const STATUS_QUOTATION_SENT = 'quotation_sent';
+    public const STATUS_ACCEPTED = 'accepted';
+    public const STATUS_REFUSED = 'refused';
+
+    // Constant Properties
+    // =========================================================================
+    public ?float $amount = 0.00;
+    public ?string $currency = 'EUR';
+    public ?string $reference = null;
+    public ?string $summary = null;
+    public ?DateTime $dateClosing = null;
+    public ?DateTime $dateClosed = null;
+    public ?string $webUrl = null;
+    public ?int $companyId = null;
+    public ?int $contactId = null;
+    public ?string $statusKey = null;
+    public ?string $phase = null;
+    public ?string $state = null;
+
+    private ?FieldLayout $fieldLayout = null;
+
+    // Public Static Methods
+    // =========================================================================
     public static function displayName(): string
     {
         return Craft::t('teamleader-focus', 'Deal');
@@ -77,8 +112,12 @@ class Deal extends Element
     public static function statuses(): array
     {
         return [
-            'status1' => ['label' => \Craft::t('teamleader-focus', 'Custom Status 1'), 'color' => '#27AE60'],
-            'status2' => ['label' => \Craft::t('teamleader-focus', 'Custom Status 2'), 'color' => '#F2842D'],
+            self::STATUS_NEW => ['label' => Craft::t('teamleader-focus', 'New'), 'color' => 'gray'],
+            self::STATUS_CONTACTED => ['label' => Craft::t('teamleader-focus', 'Contacted'), 'color' => 'yellow'],
+            self::STATUS_MEETING_SCHEDULED => ['label' => Craft::t('teamleader-focus', 'Meeting Scheduled'), 'color' => 'orange'],
+            self::STATUS_QUOTATION_SENT => ['label' => Craft::t('teamleader-focus', 'Quotation Sent'), 'color' => 'pink'],
+            self::STATUS_ACCEPTED => ['label' => Craft::t('teamleader-focus', 'Accepted'), 'color' => 'green'],
+            self::STATUS_REFUSED => ['label' => Craft::t('teamleader-focus', 'Refused'), 'color' => 'red'],
         ];
     }
 
@@ -98,6 +137,8 @@ class Deal extends Element
         return Craft::createObject(DealCondition::class, [static::class]);
     }
 
+    // Protected Static Methods
+    // =========================================================================
     /**
      * @inheritdoc
      */
@@ -166,7 +207,6 @@ class Deal extends Element
         return [
             'slug' => ['label' => Craft::t('app', 'Slug')],
             'uri' => ['label' => Craft::t('app', 'URI')],
-            'link' => ['label' => Craft::t('app', 'Link'), 'icon' => 'world'],
             'id' => ['label' => Craft::t('app', 'ID')],
             'uid' => ['label' => Craft::t('app', 'UID')],
             'dateCreated' => ['label' => Craft::t('app', 'Date Created')],
@@ -181,29 +221,41 @@ class Deal extends Element
     protected static function defineDefaultTableAttributes(string $source): array
     {
         return [
-            'link',
             'dateCreated',
             // ...
         ];
     }
 
+    // Protected Methods
+    // =========================================================================
     /**
      * @inheritdoc
      */
     protected function defineRules(): array
     {
-        return array_merge(parent::defineRules(), [
-            // ...
-        ]);
-    }
+        $rules = parent::defineRules();
 
-    /**
-     * @inheritdoc
-     */
-    public function getUriFormat(): ?string
-    {
-        // If deals should have URLs, define their URI format here
-        return null;
+        $rules[] = [['companyId', 'contactId'], 'required', 'on' => self::SCENARIO_LIVE];
+
+        $rules[] = [
+            [
+                'amount',
+                'companyId',
+                'contactId',
+                'currency',
+                'dateClosed',
+                'dateClosing',
+                'phase',
+                'reference',
+                'state',
+                'summary',
+                'title',
+                'webUrl',
+            ],
+            'safe'
+        ];
+
+        return $rules;
     }
 
     /**
@@ -242,13 +294,59 @@ class Deal extends Element
     /**
      * @inheritdoc
      */
+    protected function cpEditUrl(): ?string
+    {
+        return sprintf('teamleader-focus/deals/%s', $this->getCanonicalId());
+    }
+
+    // Public Methods
+    // =========================================================================
+    public function getCompanies(): array
+    {
+        if ($this->id && $this->companyId) {
+            return Company::find($this->companyId)->all();
+        }
+        return [];
+    }
+
+    public function getContacts(): array
+    {
+        if ($this->id && $this->contactId) {
+            return Contact::find($this->contactId)->all();
+        }
+        return [];
+    }
+
+    public function getQuotations(): array
+    {
+        if ($this->id) {
+            return Quotation::find()
+                ->where(['dealId' => $this->id])
+                ->all();
+        }
+
+        return [];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getUriFormat(): ?string
+    {
+        // If deals should have URLs, define their URI format here
+        return null;
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function canView(User $user): bool
     {
         if (parent::canView($user)) {
             return true;
         }
         // todo: implement user permissions
-        return $user->can('viewDeals');
+        return $user->can('teamleader-focus:view-deals');
     }
 
     /**
@@ -260,7 +358,7 @@ class Deal extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('saveDeals');
+        return $user->can('teamleader-focus:save-deals');
     }
 
     /**
@@ -272,7 +370,7 @@ class Deal extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('saveDeals');
+        return $user->can('teamleader-focus:view-deals');
     }
 
     /**
@@ -284,7 +382,7 @@ class Deal extends Element
             return true;
         }
         // todo: implement user permissions
-        return $user->can('deleteDeals');
+        return $user->can('teamleader-focus:delete-deals');
     }
 
     /**
@@ -298,18 +396,116 @@ class Deal extends Element
     /**
      * @inheritdoc
      */
-    protected function cpEditUrl(): ?string
-    {
-        return sprintf('deals/%s', $this->getCanonicalId());
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function getPostEditUrl(): ?string
     {
-        return UrlHelper::cpUrl('deals');
+        return UrlHelper::cpUrl('teamleader-focus/deals');
     }
+
+    public function getStatus(): ?string
+    {
+        $status = parent::getStatus();
+        if ($status !== self::STATUS_ENABLED) {
+            return $status;
+        }
+
+        if (is_null($this->phase)) {
+            return self::STATUS_NEW;
+        }
+
+        switch ($this->phase) {
+            case self::STATUS_NEW:
+                return self::STATUS_NEW;
+            case self::STATUS_CONTACTED:
+                return self::STATUS_CONTACTED;
+            case self::STATUS_MEETING_SCHEDULED:
+                return self::STATUS_MEETING_SCHEDULED;
+            case self::STATUS_QUOTATION_SENT:
+                return self::STATUS_QUOTATION_SENT;
+            case self::STATUS_ACCEPTED:
+                return self::STATUS_ACCEPTED;
+            case self::STATUS_REFUSED:
+                return self::STATUS_REFUSED;
+            default:
+                return self::STATUS_NEW;
+        }
+    }
+
+
+    public function getMetadata(): array
+    {
+        $metadata = $this->metadata();
+
+        // Fire a 'defineMetadata' event
+        if ($this->hasEventHandlers(self::EVENT_DEFINE_METADATA)) {
+            $event = new DefineMetadataEvent(['metadata' => $metadata]);
+            $this->trigger(self::EVENT_DEFINE_METADATA, $event);
+            $metadata = $event->metadata;
+        }
+
+        $formatter = Craft::$app->getFormatter();
+
+        $html = array_merge($metadata, [
+            Craft::t('app', 'Created at') => $this->dateCreated && !$this->getIsUnpublishedDraft()
+                ? $formatter->asDatetime($this->dateCreated, Formatter::FORMAT_WIDTH_SHORT)
+                : false,
+            Craft::t('app', 'Updated at') => $this->dateUpdated && !$this->getIsUnpublishedDraft()
+                ? $formatter->asDatetime($this->dateUpdated, Formatter::FORMAT_WIDTH_SHORT)
+                : false,
+            Craft::t('app', 'Closing at') => $this->dateClosing && !$this->dateClosed
+                ? $formatter->asDatetime($this->dateClosing, Formatter::FORMAT_WIDTH_SHORT)
+                : false,
+            Craft::t('app', 'Closed at') => $this->dateClosed
+                ? $formatter->asDatetime($this->dateClosed, Formatter::FORMAT_WIDTH_SHORT)
+                : false,
+        ]);
+
+        return $html;
+    }
+
+
+    public function getSidebarHtml(bool $static): string
+    {
+        $components = [];
+
+        $components[] = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_deals-sidebar', [
+            'element' => $this,
+            'companyConfig' => [
+                'allowAdd' => true,
+                'allowRemove' => true,
+                'criteria' => ['siteId' => Craft::$app->sites->currentSite->id,],
+                'elementType' => Company::class,
+                'elements' => $this->companies ?? [],
+                'limit' => 1,
+                'name' => 'companyId',
+                'required' => true,
+                'showCardsInGrid' => false,
+                'single' => true,
+                'viewMode' => 'list',
+            ],
+            'contactConfig' => [
+                'allowAdd' => true,
+                'allowRemove' => true,
+                'criteria' => ['siteId' => Craft::$app->sites->currentSite->id,],
+                'elementType' => Contact::class,
+                'elements' => $this->contacts ?? [],
+                'limit' => 1,
+                'name' => 'contactId',
+                'required' => true,
+                'showCardsInGrid' => false,
+                'single' => true,
+                'viewMode' => 'list',
+            ],
+            'status' => $this->getStatus(),
+        ]);
+
+        // Fire a defineSidebarHtml event
+        $event = new DefineHtmlEvent([
+            'html' => implode("\n", $components),
+        ]);
+        $this->trigger(self::EVENT_DEFINE_SIDEBAR_HTML, $event);
+        return $event->html;
+    }
+
 
     /**
      * @inheritdoc
@@ -320,9 +516,29 @@ class Deal extends Element
         $response->crumbs([
             [
                 'label' => self::pluralDisplayName(),
-                'url' => UrlHelper::cpUrl('deals'),
+                'url' => UrlHelper::cpUrl('teamleader-focus/deals'),
             ],
         ]);
+    }
+
+    /**
+     * @inheritdoc
+     * @return FieldLayout|null
+     */
+    public function getFieldLayout(): ?FieldLayout
+    {
+        if ($this->fieldLayout !== null) {
+            return $this->fieldLayout;
+        }
+
+        $this->fieldLayout = Craft::$app->getFields()->getLayoutByType(self::class);
+
+        return $this->fieldLayout;
+    }
+
+    public function beforeSave(bool $isNew): bool
+    {
+        return parent::beforeSave($isNew);
     }
 
     /**
@@ -332,11 +548,42 @@ class Deal extends Element
     public function afterSave(bool $isNew): void
     {
         if (!$this->propagating) {
-            Db::upsert(Table::DEALS, [
-                'id' => $this->id,
-            ]);
+            if ($isNew) {
+                $dealRecord = new DealRecord();
+                $dealRecord->id = $this->id;
+            } else {
+                $dealRecord = DealRecord::findOne($this->id);
+            }
+
+            //            $teamleaderId = Teamleader::$plugin->quotesConnector->sync($this, $isNew);
+//
+//            if ($teamleaderId) {
+//                $contactRecord->teamleaderId = $teamleaderId;
+//            }
+
+            $dealRecord->fieldLayoutId = $this->fieldLayout->id;
+
+            $dealRecord->companyId = $this->companyId;
+            $dealRecord->contactId = $this->contactId;
+            $dealRecord->amount = $this->amount;
+            $dealRecord->currency = $this->currency;
+            $dealRecord->dateClosed = $this->dateClosed;
+            $dealRecord->dateClosing = $this->dateClosing;
+            $dealRecord->phase = $this->phase;
+            $dealRecord->reference = $this->reference;
+            $dealRecord->state = $this->state;
+            $dealRecord->summary = $this->summary;
+            $dealRecord->webUrl = $this->webUrl;
+
+            $dealRecord->save(false);
         }
 
         parent::afterSave($isNew);
+    }
+
+
+    public function getArray($handle): array
+    {
+        return $this[$handle];
     }
 }

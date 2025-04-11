@@ -11,12 +11,11 @@
 namespace craftpulse\teamleader;
 
 use Craft;
-use craft\base\ElementInterface;
-use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
 use craft\base\Element;
+use craft\base\ElementInterface;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\User;
@@ -34,14 +33,14 @@ use craft\web\UrlManager;
 use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\elements\Contact;
 use craftpulse\teamleader\elements\Deal;
+use craftpulse\teamleader\elements\Quotation;
+use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
 use craftpulse\teamleader\helpers\ElementSidebarHelper;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
 use craftpulse\teamleader\services\ServicesTrait;
-
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
-
 use yii\base\Event;
 use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;
@@ -58,7 +57,8 @@ use yii\log\Logger;
  * @method SettingsModel getSettings()
  *
  */
-class Teamleader extends Plugin {
+class Teamleader extends Plugin
+{
 
     // Traits
     // =========================================================================
@@ -128,7 +128,8 @@ class Teamleader extends Plugin {
 
     // Public Methods
     // =========================================================================
-    public function init(): void {
+    public function init(): void
+    {
         parent::init();
         self::$plugin = $this;
 
@@ -141,7 +142,7 @@ class Teamleader extends Plugin {
         }
 
         // Register our Formie event handlers
-        if(class_exists(Integrations::class)) {
+        if (class_exists(Integrations::class)) {
             $this->_registerFormieEventHandlers();
         }
 
@@ -202,6 +203,13 @@ class Teamleader extends Plugin {
             $editableSettings = false;
         }
 
+        if ($currentUser->can('teamleader-focus:view-companies')) {
+            $subNavs['companies'] = [
+                'label' => Craft::t('teamleader-focus', 'Companies'),
+                'url' => 'teamleader-focus/companies',
+            ];
+        }
+
         if ($currentUser->can('teamleader-focus:view-contacts')) {
             $subNavs['contacts'] = [
                 'label' => Craft::t('teamleader-focus', 'Contacts'),
@@ -209,10 +217,17 @@ class Teamleader extends Plugin {
             ];
         }
 
-        if ($currentUser->can('teamleader-focus:view-companies')) {
-            $subNavs['companies'] = [
-                'label' => Craft::t('teamleader-focus', 'Companies'),
-                'url' => 'teamleader-focus/companies',
+        if ($currentUser->can('teamleader-focus:view-deals')) {
+            $subNavs['deals'] = [
+                'label' => Craft::t('teamleader-focus', 'Deals'),
+                'url' => 'teamleader-focus/deals',
+            ];
+        }
+
+        if ($currentUser->can('teamleader-focus:view-quotations')) {
+            $subNavs['quotations'] = [
+                'label' => Craft::t('teamleader-focus', 'Quotations'),
+                'url' => 'teamleader-focus/quotations',
             ];
         }
 
@@ -312,9 +327,10 @@ class Teamleader extends Plugin {
      */
     private function _registerCpUrlRules(): void
     {
-        Event::on(UrlManager::class,
+        Event::on(
+            UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function(RegisterUrlRulesEvent $event) {
+            function (RegisterUrlRulesEvent $event) {
                 // Merge so that settings controller action comes first (important!)
                 $event->rules = array_merge(
                     [
@@ -325,6 +341,8 @@ class Teamleader extends Plugin {
                         'teamleader-focus/contacts/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/deals' => ['template' => 'teamleader-focus/deals/_index.twig'],
                         'teamleader-focus/deals/<elementId:\d+>' => 'elements/edit',
+                        'teamleader-focus/quotations' => ['template' => 'teamleader-focus/quotations/_index.twig'],
+                        'teamleader-focus/quotations/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/settings' => 'teamleader-focus/settings/edit',
                         'teamleader-focus/settings/general' => 'teamleader-focus/settings/edit',
                         'teamleader-focus/settings/contacts' => 'teamleader-focus/settings/edit-contact-settings',
@@ -345,13 +363,16 @@ class Teamleader extends Plugin {
      */
     private function _registerElements(): void
     {
-        Event::on(Elements::class,
+        Event::on(
+            Elements::class,
             Elements::EVENT_REGISTER_ELEMENT_TYPES,
             function (RegisterComponentTypesEvent $event) {
                 $event->types[] = Company::class;
                 $event->types[] = Contact::class;
                 $event->types[] = Deal::class;
-            });
+                $event->types[] = Quotation::class;
+            }
+        );
     }
 
     /**
@@ -371,26 +392,30 @@ class Teamleader extends Plugin {
                 // We only want to provide these options for our company field layouts:
                 if ($fieldLayout->type === Company::class) {
                     // Add our custom fields
-                    foreach ($this->getCompanies()->createFields() as $field)
-                    {
+                    foreach ($this->getCompanies()->createFields() as $field) {
                         $event->fields[] = $field;
                     }
                 }
 
                 if ($fieldLayout->type === Contact::class) {
                     // Add our custom fields
-                    foreach ($this->getContacts()->createFields() as $field)
-                    {
+                    foreach ($this->getContacts()->createFields() as $field) {
                         $event->fields[] = $field;
                     }
                 }
 
                 if ($fieldLayout->type === Deal::class) {
                     // Add our custom fields
-                    /*foreach ($this->getDeals()->createFields() as $field)
-                    {
+                    foreach ($this->getDeals()->createFields() as $field) {
                         $event->fields[] = $field;
-                    }*/
+                    }
+                }
+
+                if ($fieldLayout->type === Quotation::class) {
+                    // Add our custom fields
+                    foreach ($this->getQuotations()->createFields() as $field) {
+                        $event->fields[] = $field;
+                    }
                 }
             }
         );
@@ -401,7 +426,8 @@ class Teamleader extends Plugin {
      *
      * @return void
      */
-    private function _registerFormieEventHandlers(): void {
+    private function _registerFormieEventHandlers(): void
+    {
         Event::on(
             Integrations::class,
             Integrations::EVENT_REGISTER_INTEGRATIONS,
@@ -416,12 +442,32 @@ class Teamleader extends Plugin {
      */
     private function _registerSidebarPanels(): void
     {
+        Event::on(
+            Contact::class,
+            Element::EVENT_DEFINE_SIDEBAR_HTML,
+            function (DefineHtmlEvent $event) {
+                /** @var Element $element */
+                $element = $event->sender;
+                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'contact');
+            },
+        );
+
+        Event::on(
+            Quotation::class,
+            Element::EVENT_DEFINE_SIDEBAR_HTML,
+            function (DefineHtmlEvent $event) {
+                /** @var Element $element */
+                $element = $event->sender;
+                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'quotation');
+            },
+        );
+
         foreach (ElementSidebarHelper::ELIGIBLE_ELEMENT_TYPES as $elementType) {
             if (class_exists($elementType)) {
                 Event::on(
                     $elementType,
-                    $elementType::EVENT_DEFINE_SIDEBAR_HTML,
-                    function(DefineHtmlEvent $event) {
+                        $elementType::EVENT_DEFINE_SIDEBAR_HTML,
+                    function (DefineHtmlEvent $event) {
 
                         /** @var Element $element */
                         $element = $event->sender;
@@ -430,16 +476,6 @@ class Teamleader extends Plugin {
                 );
             }
         }
-
-        Event::on(
-            Deal::class,
-            Element::EVENT_DEFINE_SIDEBAR_HTML,
-            function(DefineHtmlEvent $event) {
-                /** @var Element $element */
-                $element = $event->sender;
-                $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'deal');
-            },
-        );
     }
 
     /**
@@ -449,8 +485,10 @@ class Teamleader extends Plugin {
      */
     private function _registerUserPermissions(): void
     {
-        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS,
-            function(RegisterUserPermissionsEvent $event) {
+        Event::on(
+            UserPermissions::class,
+            UserPermissions::EVENT_REGISTER_PERMISSIONS,
+            function (RegisterUserPermissionsEvent $event) {
                 $event->permissions[] = [
                     'heading' => 'Teamleader Focus',
                     'permissions' => [
@@ -480,6 +518,15 @@ class Teamleader extends Plugin {
                         ],
                         'teamleader-focus:delete-deals' => [
                             'label' => Craft::t('teamleader-focus', 'Delete deals'),
+                        ],
+                        'teamleader-focus:view-quotations' => [
+                            'label' => Craft::t('teamleader-focus', 'View quotations'),
+                        ],
+                        'teamleader-focus:save-quotations' => [
+                            'label' => Craft::t('teamleader-focus', 'Edit/Save quotations'),
+                        ],
+                        'teamleader-focus:delete-quotations' => [
+                            'label' => Craft::t('teamleader-focus', 'Delete quotations'),
                         ],
                         'teamleader-focus:view-sidebar-panel' => [
                             'label' => Craft::t('teamleader-focus', 'View sidebar panels'),
