@@ -610,7 +610,7 @@ class Quotation extends Element
             $record->taxableAmount = $this->taxableAmount;
             $record->totalTaxExclusiveAmount = $this->totalTaxExclusiveAmount;
             $record->totalTaxInclusiveAmount = $this->totalTaxInclusiveAmount;
-            $record->quotationLines = $this->quotationLines;
+            $record->quotationLines = $this->arrQuotationLines;
 
             $success = $record->save(false);
         }
