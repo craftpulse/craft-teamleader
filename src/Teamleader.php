@@ -57,7 +57,8 @@ use yii\log\Logger;
  * @method SettingsModel getSettings()
  *
  */
-class Teamleader extends Plugin {
+class Teamleader extends Plugin
+{
 
     // Traits
     // =========================================================================
@@ -127,7 +128,8 @@ class Teamleader extends Plugin {
 
     // Public Methods
     // =========================================================================
-    public function init(): void {
+    public function init(): void
+    {
         parent::init();
         self::$plugin = $this;
 
@@ -140,7 +142,7 @@ class Teamleader extends Plugin {
         }
 
         // Register our Formie event handlers
-        if(class_exists(Integrations::class)) {
+        if (class_exists(Integrations::class)) {
             $this->_registerFormieEventHandlers();
         }
 
@@ -190,8 +192,8 @@ class Teamleader extends Plugin {
      */
     public function getCpNavItem(): ?array
     {
-        $subNavs = [];
         $navItem = parent::getCpNavItem();
+        $subNavs = [];
         $currentUser = Craft::$app->getUser()->getIdentity();
 
         $editableSettings = true;
@@ -325,9 +327,10 @@ class Teamleader extends Plugin {
      */
     private function _registerCpUrlRules(): void
     {
-        Event::on(UrlManager::class,
+        Event::on(
+            UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function(RegisterUrlRulesEvent $event) {
+            function (RegisterUrlRulesEvent $event) {
                 // Merge so that settings controller action comes first (important!)
                 $event->rules = array_merge(
                     [
@@ -341,6 +344,10 @@ class Teamleader extends Plugin {
                         'teamleader-focus/quotations' => ['template' => 'teamleader-focus/quotations/_index.twig'],
                         'teamleader-focus/quotations/<elementId:\d+>' => 'elements/edit',
                         'teamleader-focus/settings' => 'teamleader-focus/settings/edit',
+                        'teamleader-focus/settings/general' => 'teamleader-focus/settings/edit',
+                        'teamleader-focus/settings/contacts' => 'teamleader-focus/settings/edit-contact-settings',
+                        'teamleader-focus/settings/companies' => 'teamleader-focus/settings/edit-company-settings',
+                        'teamleader-focus/settings/deals' => 'teamleader-focus/settings/edit-deal-settings',
                         'teamleader-focus/teamleader-focus' => 'teamleader-focus/settings/edit',
                     ],
                     $event->rules,
@@ -356,14 +363,16 @@ class Teamleader extends Plugin {
      */
     private function _registerElements(): void
     {
-        Event::on(Elements::class,
+        Event::on(
+            Elements::class,
             Elements::EVENT_REGISTER_ELEMENT_TYPES,
             function (RegisterComponentTypesEvent $event) {
                 $event->types[] = Company::class;
                 $event->types[] = Contact::class;
                 $event->types[] = Deal::class;
                 $event->types[] = Quotation::class;
-            });
+            }
+        );
     }
 
     /**
@@ -383,32 +392,28 @@ class Teamleader extends Plugin {
                 // We only want to provide these options for our company field layouts:
                 if ($fieldLayout->type === Company::class) {
                     // Add our custom fields
-                    foreach ($this->getCompanies()->createFields() as $field)
-                    {
+                    foreach ($this->getCompanies()->createFields() as $field) {
                         $event->fields[] = $field;
                     }
                 }
 
                 if ($fieldLayout->type === Contact::class) {
                     // Add our custom fields
-                    foreach ($this->getContacts()->createFields() as $field)
-                    {
+                    foreach ($this->getContacts()->createFields() as $field) {
                         $event->fields[] = $field;
                     }
                 }
 
                 if ($fieldLayout->type === Deal::class) {
                     // Add our custom fields
-                    foreach ($this->getDeals()->createFields() as $field)
-                    {
+                    foreach ($this->getDeals()->createFields() as $field) {
                         $event->fields[] = $field;
                     }
                 }
 
                 if ($fieldLayout->type === Quotation::class) {
                     // Add our custom fields
-                    foreach ($this->getQuotations()->createFields() as $field)
-                    {
+                    foreach ($this->getQuotations()->createFields() as $field) {
                         $event->fields[] = $field;
                     }
                 }
@@ -421,7 +426,8 @@ class Teamleader extends Plugin {
      *
      * @return void
      */
-    private function _registerFormieEventHandlers(): void {
+    private function _registerFormieEventHandlers(): void
+    {
         Event::on(
             Integrations::class,
             Integrations::EVENT_REGISTER_INTEGRATIONS,
@@ -439,7 +445,7 @@ class Teamleader extends Plugin {
         Event::on(
             Contact::class,
             Element::EVENT_DEFINE_SIDEBAR_HTML,
-            function(DefineHtmlEvent $event) {
+            function (DefineHtmlEvent $event) {
                 /** @var Element $element */
                 $element = $event->sender;
                 $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'contact');
@@ -449,7 +455,7 @@ class Teamleader extends Plugin {
         Event::on(
             Quotation::class,
             Element::EVENT_DEFINE_SIDEBAR_HTML,
-            function(DefineHtmlEvent $event) {
+            function (DefineHtmlEvent $event) {
                 /** @var Element $element */
                 $element = $event->sender;
                 $event->html .= ElementSidebarHelper::getSidebarHtml($element, 'quotation');
@@ -460,8 +466,8 @@ class Teamleader extends Plugin {
             if (class_exists($elementType)) {
                 Event::on(
                     $elementType,
-                    $elementType::EVENT_DEFINE_SIDEBAR_HTML,
-                    function(DefineHtmlEvent $event) {
+                        $elementType::EVENT_DEFINE_SIDEBAR_HTML,
+                    function (DefineHtmlEvent $event) {
 
                         /** @var Element $element */
                         $element = $event->sender;
@@ -479,8 +485,10 @@ class Teamleader extends Plugin {
      */
     private function _registerUserPermissions(): void
     {
-        Event::on(UserPermissions::class, UserPermissions::EVENT_REGISTER_PERMISSIONS,
-            function(RegisterUserPermissionsEvent $event) {
+        Event::on(
+            UserPermissions::class,
+            UserPermissions::EVENT_REGISTER_PERMISSIONS,
+            function (RegisterUserPermissionsEvent $event) {
                 $event->permissions[] = [
                     'heading' => 'Teamleader Focus',
                     'permissions' => [

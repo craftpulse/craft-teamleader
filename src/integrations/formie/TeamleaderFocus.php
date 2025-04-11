@@ -17,7 +17,6 @@ use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\auth\providers\TeamleaderFocus as TeamleaderFocusProvider;
 
 use Illuminate\Support\Collection;
-use Throwable;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -629,7 +628,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
         $missing_values = array_diff($required_fields, array_keys($fields));
 
         if (!empty($missing_values)) {
-            $address = [
+            return [
                 'type' => 'primary',
                 'address' => [
                     'line_1' => $payload['addressLine1'],
@@ -638,8 +637,6 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     'country' => $payload['country'],
                 ]
             ];
-
-            return $address;
         } else {
             return null;
         }

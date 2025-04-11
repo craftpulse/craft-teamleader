@@ -13,7 +13,11 @@ use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\elements\Contact;
 use craftpulse\teamleader\elements\Deal;
-
+use Throwable;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use yii\base\Exception;
 
 class ElementSidebarHelper
 {
@@ -43,6 +47,15 @@ class ElementSidebarHelper
 
     /**
      * Returns the HTML for the sidebar.
+     *
+     * @param Element $element
+     * @param string $type
+     * @return string
+     * @throws Exception
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws Throwable
      */
     public static function getSidebarHtml(Element $element, string $type = 'teamleader'): string
     {
@@ -52,7 +65,7 @@ class ElementSidebarHelper
             return '';
         }
 
-        $connected = (bool)Teamleader::$plugin->providers->getToken();
+        $connected = (bool) Teamleader::$plugin->providers->getToken();
 
         if (empty(Teamleader::$plugin->settings->clientId) && empty(Teamleader::$plugin->settings->clientSecret) && !$connected) {
             return '';
@@ -83,6 +96,14 @@ class ElementSidebarHelper
         return $event->html;
     }
 
+    /**
+     * @param Element $element
+     * @return string
+     * @throws Exception
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
     private static function metaFieldsHtmlTeamleader(Element $element): string
     {
         // Need logic here to create this currently based on the element, we need an element with the data from our database
@@ -103,7 +124,15 @@ class ElementSidebarHelper
         return $event->html;
     }
 
-    private static function metaFieldsHtmlContacts(Element $element): string
+    /**
+     * @param Element $element
+     * @return string
+     * @throws Exception
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
+     */
+    private static function metaFieldsHtmlDeals(Element $element): string
     {
         // Need logic here to create this currently based on the element, we need an element with the data from our database
 
