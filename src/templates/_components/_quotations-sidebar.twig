@@ -4,31 +4,50 @@
     <div class="meta">
         <div class="field">
             <legend class="heading">
-                {{ 'Company'|t('teamleader-focus') }}
+                {{ 'Deal'|t('teamleader-focus') }}
             </legend>
 
             <div class="input ltr">
-                {% include '_includes/forms/elementSelect.twig' with companyConfig %}
+                {% include '_includes/forms/elementSelect.twig' with {
+                    allowAdd: true,
+                    allowRemove: true,
+                    elementType: dealType,
+                    elements: (element.deal ?? null) ? [element.deal] : [],
+                    name: 'dealId',
+                    single: true,
+                    limit: 1,
+                    showCardsInGrid: false,
+                    viewMode: 'list',
+                } %}
             </div>
         </div>
         <div class="field">
-            <div class="heading">
-                {{ 'Contact'|t('teamleader-focus') }}
-            </div>
+            <legend class="heading">
+                {{ 'Product'|t('teamleader-focus') }}
+            </legend>
 
             <div class="input ltr">
-                {% include '_includes/forms/elementSelect.twig' with contactConfig %}
+                {% include '_includes/forms/elementSelect.twig' with {
+                    allowAdd: true,
+                    allowRemove: true,
+                    elementType: elementType,
+                    elements: (element.product ?? null) ? [element.product] : [],
+                    name: 'productId',
+                    single: true,
+                    limit: 1,
+                    showCardsInGrid: false,
+                    viewMode: 'list',
+                } %}
             </div>
         </div>
     </div>
 </div>
 
-
-<div class="fieldset">
 {% set statuses = element.statuses %}
 {% if  statuses[element.status] ?? null %}
+    <div class="fieldset">
         <legend class="h6">
-            {{ 'Deal Status'|t('teamleader-focus') }}
+            {{ 'Quotation Status'|t('teamleader-focus') }}
         </legend>
         <div class="meta">
 
@@ -62,6 +81,7 @@
                 label: 'Status' | t('formie'),
             }, statusField) }}
         </div>
+    </div>
 
     {% js %}
 
@@ -69,19 +89,17 @@
             $statusSelect = $('#status-menu-btn');
 
             new Garnish.MenuBtn($statusSelect, {
-                onOptionSelect: function(data) {
-                    var val = $(data).data('val');
-                    var label = $(data).data('label');
-                    var color = $(data).data('color');
-                    $('#phase').val(val);
+            onOptionSelect: function(data) {
+                var val = $(data).data('val');
+                var label = $(data).data('label');
+                var color = $(data).data('color');
+                $('#phase').val(val);
 
-                    var html = '<span class="status ' + color + '"></span>' + label;
-                    $statusSelect.html(html);
+                var html = '<span class="status ' + color + '"></span>' + label;
+                $statusSelect.html(html);
                 }
             });
         });
 
     {% endjs %}
 {% endif %}
-
-</div>

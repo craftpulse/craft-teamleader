@@ -204,6 +204,7 @@ class SettingsController extends Controller
         $variables['fieldLayout'] = Craft::$app->getFields()->getLayoutByType(Contact::class);
         $variables['title'] = Craft::t('teamleader-focus', 'Contact Settings');
         $variables['readOnly'] = $this->isReadOnlyScreen();
+        $variables['fullPageForm'] = true;
 
         return $this->renderTemplate('teamleader-focus/settings/contacts/_edit', $variables);
     }
@@ -217,6 +218,7 @@ class SettingsController extends Controller
         $variables['fieldLayout'] = Craft::$app->getFields()->getLayoutByType(Company::class);
         $variables['title'] = Craft::t('teamleader-focus', 'Company Settings');
         $variables['readOnly'] = $this->isReadOnlyScreen();
+        $variables['fullPageForm'] = true;
 
         return $this->renderTemplate('teamleader-focus/settings/companies/_edit', $variables);
     }
@@ -230,6 +232,7 @@ class SettingsController extends Controller
         $variables['fieldLayout'] = Craft::$app->getFields()->getLayoutByType(Deal::class);
         $variables['title'] = Craft::t('teamleader-focus', 'Deal Settings');
         $variables['readOnly'] = $this->isReadOnlyScreen();
+        $variables['fullPageForm'] = true;
 
         return $this->renderTemplate('teamleader-focus/settings/deals/_edit', $variables);
     }

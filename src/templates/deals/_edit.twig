@@ -1,0 +1,24 @@
+{% extends '_layouts/cp' %}
+{% import '_includes/forms' as forms %}
+
+{% block actionButton %}
+{% endblock  %}
+
+{% block content %}
+Test
+{% endblock %}
+
+{% block details %}
+    {% include 'teamleader-focus/_components/_deals-sidebar' with {
+        element: element
+    } %}
+{#    {% if details is not empty %}#}
+{#        <div id="details-container" data-state="{{  craft.app.request.rawCookies.value('Craft-' ~ craft.app.systemUid ~  ':sidebar-details')}}">#}
+{#            <div id="details">#}
+{#                <div class="details">#}
+{#                    {{ details|raw }}#}
+{#                </div>#}
+{#            </div>#}
+{#        </div>#}
+{#    {% endif %}#}
+{% endblock %}

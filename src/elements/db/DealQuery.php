@@ -17,7 +17,18 @@ class DealQuery extends ElementQuery
         $this->joinElementTable(Table::DEALS);
 
         // todo: apply any custom query params
-        // ...
+        $this->query->select([
+            'teamleader_focus_deals.amount',
+            'teamleader_focus_deals.companyId',
+            'teamleader_focus_deals.contactId',
+            'teamleader_focus_deals.currency',
+            'teamleader_focus_deals.dateClosed',
+            'teamleader_focus_deals.dateClosing',
+            'teamleader_focus_deals.phase',
+            'teamleader_focus_deals.reference',
+            'teamleader_focus_deals.summary',
+            'teamleader_focus_deals.webUrl',
+        ]);
 
         return parent::beforePrepare();
     }

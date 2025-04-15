@@ -1,0 +1,46 @@
+<div>
+    <h2>{{ 'Quotation contents'|t('teamleader-focus') }}</h2>
+    <table class="width-100" style="width:100%;">
+        <tr>
+            <th>{{ 'Title'|t('teamleader-focus') }}</th>
+            <th>{{ 'Unit price'|t('teamleader-focus') }}</th>
+            <th>{{ 'Quantity'|t('teamleader-focus') }}</th>
+            <th>{{ 'VAT'|t('teamleader-focus') }}</th>
+            <th>{{ 'Subtotal'|t('teamleader-focus') }}</th>
+        </tr>
+
+        {% for line in element.arrQuotationLines  %}
+            {% if line.section.title ?? null %}
+                <tr>
+                    <td colspan="5" style="background:#f5f5f5;">{{ line.section.title }}</td>
+                </tr>
+            {% endif %}
+            {% for item in line.line_items %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.unit_price.amount }} {{ item.unit_price.currency }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.tax.type }}</td>
+                    <td>{{ item.purchase_price.amount }} {{ item.purchase_price.currency }}</td>
+                </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+
+    <table style="margin-left:auto;">
+        <tr>
+            <th>{{ 'Total excl. VAT'|t('teamleader-focus') }}</th>
+            <td>{{ element.totalTaxExclusiveAmount }}</td>
+        </tr>
+        <tr>
+            <th>{{ 'VAT'|t('teamleader-focus') }} ({{ element.taxRate }}%)</th>
+            <td>{{ element.taxableAmount }}</td>
+        </tr>
+        <tr>
+            <th>{{ 'Total incl. VAT'|t('teamleader-focus') }}</th>
+            <td>{{ element.totalTaxInclusiveAmount }}</td>
+        </tr>
+    </table>
+
+
+</div>

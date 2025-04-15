@@ -10,6 +10,8 @@ use craft\elements\ElementCollection;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
+use craft\enums\Color;
+use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
@@ -163,7 +165,7 @@ class Company extends Element
      */
     public static function hasStatuses(): bool
     {
-        return true;
+        return false;
     }
 
     /**
@@ -286,6 +288,21 @@ class Company extends Element
         $rules[] = [['vatNumber', 'nationalIdentificationNumber', 'emails', 'telephones', 'addresses', 'marketingMailsConsent', 'website'], 'safe'];
 
         return $rules;
+    }
+
+    /**
+     * Returns element metadata that should be shown within the editor sidebar.
+     *
+     * @return array The data, with keys representing the labels. The values can either be strings or callables.
+     * If a value is `false`, it will be omitted.
+     * @since 3.7.0
+     */
+    protected function metadata(): array
+    {
+        $array = [];
+        return [
+
+        ];
     }
 
     protected function cpEditUrl(): ?string
