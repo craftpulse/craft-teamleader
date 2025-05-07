@@ -4,27 +4,19 @@ namespace craftpulse\teamleader\elements;
 
 use Craft;
 use craft\base\Element;
-use craft\elements\Address;
-use craft\elements\db\AddressQuery;
 use craft\elements\ElementCollection;
 use craft\elements\User;
 use craft\elements\conditions\ElementConditionInterface;
 use craft\elements\db\ElementQueryInterface;
-use craft\fieldlayoutelements\TextField;
 use craft\helpers\Html;
 use craft\helpers\Json;
 use craft\helpers\UrlHelper;
 use craft\models\FieldLayout;
-use craft\models\FieldLayoutTab;
 use craft\web\CpScreenResponseBehavior;
-use craftpulse\teamleader\elements\actions\AssignCompanies;
 use craftpulse\teamleader\elements\conditions\ContactCondition;
 use craftpulse\teamleader\elements\db\ContactQuery;
-use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
-use craftpulse\teamleader\records\CompanyRecord;
 use craftpulse\teamleader\records\ContactCompanyRecord;
 use craftpulse\teamleader\records\ContactRecord;
-use craftpulse\teamleader\services\ServicesTrait;
 use craftpulse\teamleader\Teamleader;
 use Illuminate\Support\Collection;
 use yii\base\ExitException;
@@ -242,16 +234,19 @@ class Contact extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [[
-            'emails',
-            'firstName',
-            'language',
-            'lastName',
-            'marketingMailsConsent',
-            'salutation',
-            'telephones',
-            'companies',
-        ], 'safe'];
+        $rules[] = [
+            [
+                'emails',
+                'firstName',
+                'language',
+                'lastName',
+                'marketingMailsConsent',
+                'salutation',
+                'telephones',
+                'companies',
+            ],
+            'safe'
+        ];
 
         return $rules;
     }
@@ -308,6 +303,18 @@ class Contact extends Element
 
     // Public Methods
     // =========================================================================
+    public function getEmail(): ?string
+    {
+        $emails = collect(Json::decode($this->emails));
+
+
+        if ($emails->count() > 0) {
+            return $emails->first()['email'];
+        }
+
+        return null;
+    }
+
     /**
      * @inheritdoc
      * @throws Exception|ExitException
@@ -326,13 +333,13 @@ class Contact extends Element
             $contactRecord->fieldLayoutId = $this->fieldLayout->id;
 
             //fields
-           $contactRecord->emails = $this->emails;
-           $contactRecord->marketingMailsConsent = $this->marketingMailsConsent;
-           $contactRecord->firstName = $this->firstName;
-           $contactRecord->lastName = $this->lastName;
-           $contactRecord->salutation = $this->salutation;
-           $contactRecord->telephones = $this->telephones;
-           $contactRecord->language = $this->language;
+            $contactRecord->emails = $this->emails;
+            $contactRecord->marketingMailsConsent = $this->marketingMailsConsent;
+            $contactRecord->firstName = $this->firstName;
+            $contactRecord->lastName = $this->lastName;
+            $contactRecord->salutation = $this->salutation;
+            $contactRecord->telephones = $this->telephones;
+            $contactRecord->language = $this->language;
 
 
             $teamleaderId = Teamleader::$plugin->contactsConnector->sync($this, $isNew);
@@ -345,13 +352,17 @@ class Contact extends Element
 
             if ($success) {
                 $companyRelations = Teamleader::$plugin->getContacts()->getContactsCompaniesByContactId($this->id);
-                $idsToDelete = $companyRelations->map(function($value) {return $value['companyId'];})->toArray();
+                $idsToDelete = $companyRelations->map(function ($value) {
+                    return $value['companyId'];
+                })->toArray();
 
                 if (!is_string($this->companies)) {
                     foreach ($this->companies as $company) {
-                        if (!$companyRelations->first(function($value) use ($company) {
-                            return $value['companyId'] == $company;
-                        })) {
+                        if (
+                            !$companyRelations->first(function ($value) use ($company) {
+                                return $value['companyId'] == $company;
+                            })
+                        ) {
                             // add
                             $contactCompany = new ContactCompanyRecord();
                             $contactCompany->companyId = $company;
@@ -401,7 +412,7 @@ class Contact extends Element
      */
     public function afterValidate(): void
     {
-//        $scenario = $this->getScenario();
+        //        $scenario = $this->getScenario();
 //
 //        if ($scenario === self::SCENARIO_LIVE) {
 //            $companyElements = $this->getFieldLayout()->getAllElements();
@@ -469,7 +480,9 @@ class Contact extends Element
             $this->_companyContacts = Teamleader::$plugin->getContacts()->getContactsCompaniesByContactId($this->id);
 
             if ($this->_companyContacts) {
-                $this->companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts->map(function($relation){return $relation['companyId'];})->all());
+                $this->companies = Teamleader::$plugin->getCompanies()->getCompaniesByIds($this->_companyContacts->map(function ($relation) {
+                    return $relation['companyId'];
+                })->all());
             }
         }
     }
@@ -542,17 +555,13 @@ class Contact extends Element
         return $user->can('teamleader-focus:delete-contacts');
     }
 
-    public function getCompanies(): array
-    {
-        return $this->companies;
-    }
-
     public function getArray($handle): array
     {
         if ($this[$handle]) {
             $data = Json::decode($this[$handle]);
 
-            if ($data == '') return [];
+            if ($data == '')
+                return [];
 
             return Json::decode($this[$handle]);
         }

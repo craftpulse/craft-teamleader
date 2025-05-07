@@ -306,6 +306,7 @@ class Deal extends Element
         if ($this->id && $this->companyId) {
             return Company::find($this->companyId)->all();
         }
+
         return [];
     }
 
@@ -326,6 +327,39 @@ class Deal extends Element
         }
 
         return [];
+    }
+
+    public function getProducts(): array
+    {
+        $quotations = $this->getQuotations();
+        $products = [];
+
+        foreach ($this->getQuotations() as $quotation) {
+            if ($quotation->product) {
+                array_push($products, $quotation->product);
+            }
+        }
+
+        return $products;
+    }
+
+    public function getTotals(): array
+    {
+        $totalExclusive = 0.00;
+        $totalTax = 0.00;
+        $totalPrice = 0.00;
+
+        foreach ($this->getQuotations() as $quotation) {
+            $totalExclusive += $quotation->totalTaxExclusiveAmount;
+            $totalTax += $quotation->taxAmount;
+            $totalPrice += $quotation->totalTaxInclusiveAmount;
+        }
+
+        return [
+            'tax' => $totalTax,
+            'exclusive' => $totalExclusive,
+            'total' => $totalPrice,
+        ];
     }
 
     /**

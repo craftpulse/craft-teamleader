@@ -12,12 +12,12 @@ namespace craftpulse\teamleader;
 
 use Craft;
 use craft\services\Fields;
+use craftpulse\teamleader\fields\DealField;
 use craftpulse\teamleader\fields\QuotationField;
 use Monolog\Formatter\LineFormatter;
 use Psr\Log\LogLevel;
 use Throwable;
 use craft\base\Element;
-use craft\base\ElementInterface;
 use craft\base\Model;
 use craft\base\Plugin;
 use craft\elements\User;
@@ -36,7 +36,6 @@ use craftpulse\teamleader\elements\Company;
 use craftpulse\teamleader\elements\Contact;
 use craftpulse\teamleader\elements\Deal;
 use craftpulse\teamleader\elements\Quotation;
-use craftpulse\teamleader\fieldlayoutelements\ContactSidebarAction;
 use craftpulse\teamleader\helpers\ElementSidebarHelper;
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 use craftpulse\teamleader\models\SettingsModel;
@@ -392,6 +391,7 @@ class Teamleader extends Plugin
             Fields::EVENT_REGISTER_FIELD_TYPES,
             function (RegisterComponentTypesEvent $event) {
                 $event->types[] = QuotationField::class;
+                $event->types[] = DealField::class;
             }
         );
     }
