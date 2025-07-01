@@ -26,6 +26,7 @@ use verbb\formie\base\Integration;
 use verbb\auth\base\OAuthProviderInterface;
 use verbb\auth\models\Token;
 use verbb\formie\base\Crm;
+use verbb\formie\helpers\ArrayHelper;
 use verbb\formie\elements\Submission;
 use verbb\formie\errors\IntegrationException;
 use verbb\formie\models\IntegrationField;
@@ -106,6 +107,8 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      */
     public ?array $dealsFieldMapping = null;
 
+    public bool $appendTags = false;
+
     // Public Methods
     // =========================================================================
     /**
@@ -185,6 +188,19 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
         return $config;
     }
 
+    private function _getExistingTags(string $id): array
+    {
+        $response = $this->request('POST', "contacts.info", [
+            'json' => [
+                'id' => $id,
+            ],
+        ]);
+
+        Craft::warning("DEBUG: response: " . Json::encode($response));
+
+        return $response['data']['tags'] ?? [];
+    }
+
     /**
      * @param Submission $submission
      * @return bool
@@ -217,9 +233,25 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
 
                 // Make sure we send a "contacts.update" request if we have an actual response id.
                 if(!empty($currentUser['id'])) {
+                    // Pull out stuff for later
+                    $tags = ArrayHelper::remove($contactValues, 'tags');
+
                     $endpoint = 'contacts.update';
                     $contactPayload['id'] = $currentUser['id'];
                     $this->userId = $currentUser['id'];
+
+                    // Process any tags, we need to fetch them first, then add or delete them.
+                    if ($tags) {
+                        if ($this->appendTags) {
+                            Craft::warning("DEBUG 1: Fetching tags to append");
+                            $existingTags = $this->_getExistingTags($this->userId);
+                            Craft::warning("DEBUG 2: Existing tags: " . Json::encode($existingTags));
+                            $tags = array_merge($tags, $existingTags);
+                            Craft::warning("DEBUG 3: All tags to append: " . Json::encode($tags));
+                        }
+
+                        $contactPayload['tags'] = $tags;
+                    }
                 }
 
                 $response = $this->deliverPayload($submission, $endpoint, $contactPayload);
@@ -401,6 +433,15 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                         'handle' => 'marketing_mails_consent',
                         'name' => Craft::t('formie', 'Marketing Mails Consent'),
                         'type' => 'boolean',
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                        'type' => 'array',
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'remarks',
+                        'name' => Craft::t('formie', 'Remarks'),
                     ]),
                 ], $this->_getCustomFields($fields));
             }

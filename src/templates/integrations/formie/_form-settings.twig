@@ -59,6 +59,14 @@
                     ${ error }
                 </li>
             </ul>
+
+            {{ forms.lightswitchField({
+                label: 'Append Tags' | t('formie'),
+                id: 'appendTags',
+                name: 'appendTags',
+                instructions: 'Whether to append tags to the list of existing member tags.' | t('formie'),
+                on: form.settings.integrations[handle].appendTags ?? false,
+            }) }}
         </div>
 
         {{ forms.lightswitchField({
