@@ -196,8 +196,6 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             ],
         ]);
 
-        Craft::warning("DEBUG: response: " . Json::encode($response));
-
         return $response['data']['tags'] ?? [];
     }
 
@@ -243,11 +241,8 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     // Process any tags, we need to fetch them first, then add or delete them.
                     if ($tags) {
                         if ($this->appendTags) {
-                            Craft::warning("DEBUG 1: Fetching tags to append");
                             $existingTags = $this->_getExistingTags($this->userId);
-                            Craft::warning("DEBUG 2: Existing tags: " . Json::encode($existingTags));
                             $tags = array_merge($tags, $existingTags);
-                            Craft::warning("DEBUG 3: All tags to append: " . Json::encode($tags));
                         }
 
                         $contactPayload['tags'] = $tags;
