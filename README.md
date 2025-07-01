@@ -80,38 +80,40 @@ When configuring Teamleader integration in a Formie form, you will see the follo
 
 ### Contact Fields
 
-| Handle | Name | Type | Required |
-|--------|------|------|----------|
-| salutation | Salutation | String | No |
-| first_name | First Name | String | No |
-| last_name | Last Name | String | Yes |
-| email | Email address | String | Yes |
-| mobile_phone | Mobile number | String | No |
-| phone | Phone number | String | No |
-| addressLine1 | Address | String | No |
-| postal_code | Postal Code | String | No |
-| city | City | String | No |
-| country | Country | String | No |
-| language | Language | String | No |
-| marketing_mails_consent | Marketing Mails Consent | Boolean | No |
+| Handle                  | Name                    | Type    | Required |
+|:------------------------|-------------------------|---------|----------|
+| salutation              | Salutation              | String  | No       |
+| first_name              | First Name              | String  | No       |
+| last_name               | Last Name               | String  | Yes      |
+| email                   | Email address           | String  | Yes      |
+| mobile_phone            | Mobile number           | String  | No       |
+| phone                   | Phone number            | String  | No       |
+| addressLine1            | Address                 | String  | No       |
+| postal_code             | Postal Code             | String  | No       |
+| city                    | City                    | String  | No       |
+| country                 | Country                 | String  | No       |
+| language                | Language                | String  | No       |
+| tags                    | Tags                    | String  | No       |
+| remarks                 | Remarks                 | String  | No       |
+| marketing_mails_consent | Marketing Mails Consent | Boolean | No       |
 
 ### Company Fields
 
-| Handle | Name | Type | Required |
-|--------|------|------|----------|
-| company_name | Company Name | String | Yes |
-| email | Email address | String | Yes |
-| addressLine1 | Address | String | No |
-| postal_code | Postal Code | String | No |
-| city | City | String | No |
-| country | Country | String | No |
-| mobile_phone | Mobile number | String | No |
-| phone | Phone number | String | No |
-| vat_number | VAT Number | String | No |
-| national_identification_number | National Identification Number | String | No |
-| website | Website | String | No |
-| language | Language | String | No |
-| marketing_mails_consent | Marketing Mails Consent | Boolean | No |
+| Handle                         | Name                           | Type    | Required |
+|--------------------------------|--------------------------------|---------|----------|
+| company_name                   | Company Name                   | String  | Yes      |
+| email                          | Email address                  | String  | Yes      |
+| addressLine1                   | Address                        | String  | No       |
+| postal_code                    | Postal Code                    | String  | No       |
+| city                           | City                           | String  | No       |
+| country                        | Country                        | String  | No       |
+| mobile_phone                   | Mobile number                  | String  | No       |
+| phone                          | Phone number                   | String  | No       |
+| vat_number                     | VAT Number                     | String  | No       |
+| national_identification_number | National Identification Number | String  | No       |
+| website                        | Website                        | String  | No       |
+| language                       | Language                       | String  | No       |
+| marketing_mails_consent        | Marketing Mails Consent        | Boolean | No       |
 
 ### Deal Fields
 
