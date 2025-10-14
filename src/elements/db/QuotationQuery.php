@@ -14,7 +14,7 @@ class QuotationQuery extends ElementQuery
 {
     protected function beforePrepare(): bool
     {
-         $this->joinElementTable(Table::QUOTATIONS);
+        $this->joinElementTable(Table::QUOTATIONS);
 
         $this->query->select([
             'teamleader_focus_quotations.currency',
@@ -22,6 +22,10 @@ class QuotationQuery extends ElementQuery
             'teamleader_focus_quotations.phase',
             'teamleader_focus_quotations.productId',
             'teamleader_focus_quotations.quotationLines',
+            'teamleader_focus_quotations.taxAmount',
+            'teamleader_focus_quotations.taxRate',
+            'teamleader_focus_quotations.taxableAmount',
+            'teamleader_focus_quotations.totalTaxExclusiveAmount',
             'teamleader_focus_quotations.totalTaxInclusiveAmount',
         ]);
         return parent::beforePrepare();

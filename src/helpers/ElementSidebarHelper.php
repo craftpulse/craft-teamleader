@@ -156,7 +156,6 @@ class ElementSidebarHelper
     {
         $html = Craft::$app->getView()->renderTemplate('teamleader-focus/_components/_quotations-sidebar', [
             'variable' => true,
-            'dealType' => Deal::class,
             'element' => $element,
         ]);
 

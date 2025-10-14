@@ -27,17 +27,21 @@
             </legend>
 
             <div class="input ltr">
-                {% include '_includes/forms/elementSelect.twig' with {
+                {%- include '_includes/forms/elementSelect.twig' with {
                     allowAdd: true,
                     allowRemove: true,
                     elementType: elementType,
                     elements: (element.product ?? null) ? [element.product] : [],
                     name: 'productId',
+                    sources: '*',
+                    criteria: {
+                        siteId: craft.app.sites.getAllSites() | map(site => site.id),
+                    },
                     single: true,
                     limit: 1,
                     showCardsInGrid: false,
                     viewMode: 'list',
-                } %}
+                } -%}
             </div>
         </div>
     </div>

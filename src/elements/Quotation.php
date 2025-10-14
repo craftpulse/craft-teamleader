@@ -317,22 +317,25 @@ class Quotation extends Element
     {
         $rules = parent::defineRules();
 
-        $rules[] = [['dealId','productId'], 'required', 'on' => self::SCENARIO_LIVE];
+        $rules[] = [['dealId', 'productId'], 'required', 'on' => self::SCENARIO_LIVE];
 
-        $rules[] = [[
-            'currency',
-            'dealId',
-            'discounts',
-            'phase',
-            'productId',
-            'purchasePrice',
-            'quotationLines',
-            'taxAmount',
-            'taxRate',
-            'taxableAmount',
-            'totalTaxExclusiveAmount',
-            'totalTaxInclusiveAmount',
-        ], 'safe'];
+        $rules[] = [
+            [
+                'currency',
+                'dealId',
+                'discounts',
+                'phase',
+                'productId',
+                'purchasePrice',
+                'quotationLines',
+                'taxAmount',
+                'taxRate',
+                'taxableAmount',
+                'totalTaxExclusiveAmount',
+                'totalTaxInclusiveAmount',
+            ],
+            'safe'
+        ];
 
         return $rules;
     }
@@ -407,6 +410,7 @@ class Quotation extends Element
             if ($el) {
                 return Craft::$app->getElements()->createElementQuery($el['type'])
                     ->id($el['id'])
+                    ->site('*')
                     ->one();
             }
         }
@@ -591,7 +595,7 @@ class Quotation extends Element
                 $record = QuotationRecord::findOne($this->id);
             }
 
-//            $teamleaderId = Teamleader::$plugin->quotesConnector->sync($this, $isNew);
+            //            $teamleaderId = Teamleader::$plugin->quotesConnector->sync($this, $isNew);
 //
 //            if ($teamleaderId) {
 //                $contactRecord->teamleaderId = $teamleaderId;
