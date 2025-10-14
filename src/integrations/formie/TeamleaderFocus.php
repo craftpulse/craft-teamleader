@@ -31,6 +31,7 @@ use verbb\formie\models\IntegrationField;
 use verbb\formie\models\IntegrationFormSettings;
 
 use yii\base\Exception;
+use yii\log\Logger;
 
 /**
  * Class TeamleaderFocus
@@ -345,6 +346,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     /**
      * @return IntegrationFormSettings
      * @throws IntegrationException
+     * @throws \Throwable
      */
     public function fetchFormSettings(): IntegrationFormSettings
     {
@@ -422,7 +424,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email address'),
-                        'required' => true,
+                        'required' => false,
                     ]),
                     // @TODO - build support for repeater fields, since Teamleader Focus supports multiple addresses in an array
                     new IntegrationField([
@@ -449,9 +451,11 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                         'handle' => 'phone',
                         'name' => Craft::t('formie', 'Phone number'),
                     ]),
+                    // @TODO this should be an option if VAT is required or not
                     new IntegrationField([
                         'handle' => 'vat_number',
                         'name' => Craft::t('formie', 'VAT Number'),
+                        'required' => false,
                     ]),
                     new IntegrationField([
                         'handle' => 'national_identification_number',
@@ -476,7 +480,18 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             if ($this->mapToDeals) {
                 $fields = $this->_fetchCustomFields('sale');
 
-                $settings['deals'] = array_merge([], $this->_getCustomFields($fields));
+                $settings['deals'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'title',
+                        'name' => Craft::t('formie', 'Deal Title'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'estimated_value',
+                        'name' => Craft::t('formie', 'Deal Value'),
+                        'required' => false,
+                    ]),
+                ], $this->_getCustomFields($fields));
             }
         } catch (Exception $error) {
             Integration::apiError($this, $error);
@@ -488,15 +503,20 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     /**
      * @param string $context
      * @return array|null
+     * @throws \Throwable
      */
     private function _fetchCustomFields(string $context): ?array {
-        $filters = [
-            'filter' => [
-                'context' => $context,
+        $options = [
+            "filter" => [
+                "context" => $context,
+            ],
+            "page" => [
+                "size" => 100,
             ]
         ];
 
-        $response = $this->request('POST', 'customFieldDefinitions.list', $filters);
+        $response = $this->request('POST', 'customFieldDefinitions.list', ['json' => $options]);
+
         $customFields = $response['data'];
 
         if (empty($customFields)) {
@@ -611,6 +631,14 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 ],
                 'contact_person_id' => $this->userId ?: '',
             ];
+
+            if(isset($payload['estimated_value'])) {
+                $payload['estimated_value'] = [
+                    'amount' => $payload['amount'],
+                    'currency' => 'EUR',
+                ];
+            }
+
             $payload['title'] = $this->dealTitle;
         }
 

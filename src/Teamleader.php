@@ -103,11 +103,11 @@ class Teamleader extends Plugin
     /**
      * @var bool
      */
-    public bool $hasCpSection = false;
+    public bool $hasCpSection = true;
     /**
      * @var bool
      */
-    public bool $hasCpSettings = false;
+    public bool $hasCpSettings = true;
     /**
      * @var mixed|object|null
      */

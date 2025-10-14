@@ -98,6 +98,7 @@ class TeamleaderFocusConnector extends Component implements OAuthProviderInterfa
      * @param string $vatNumber
      * @return bool|string
      */
+    // @TODO throw is in a helper
     public function formatVatNumber(string $vatNumber): bool|string
     {
         // Extract first two and ensure it's valid A-Z
