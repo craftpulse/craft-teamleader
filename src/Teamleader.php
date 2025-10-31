@@ -147,7 +147,7 @@ class Teamleader extends Plugin
             $this->_registerFormieEventHandlers();
         }
 
-        if ($this->getIsPlus() || $this->getIsPro()) {
+        if (true /* $this->getIsPlus() || $this->getIsPro() */) {
             $this->hasCpSettings = true;
             $this->hasCpSection = true;
 
