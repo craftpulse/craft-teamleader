@@ -267,6 +267,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $compElement = new TLCompany();
                 $compElement->title = $submission->companyName;
                 $compElement->teamleaderId = $this->companyId;
+                $compElement->vatNumber = $submission->vatNumber;
                 if(Craft::$app->elements->saveElement($compElement)) {
  
                 } else {
