@@ -83,7 +83,7 @@ class Company extends Element
     /**
      * @var int|null
      */
-    public ?int $teamleaderId = null;
+    public ?string $teamleaderId = null;
 
 
     // Public Static Methods

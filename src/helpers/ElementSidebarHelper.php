@@ -77,7 +77,7 @@ class ElementSidebarHelper
             case 'contact':
                 $html = Html::beginTag('fieldset', ['class' => 'teamleader-focus-element-sidebar']) .
                     Html::tag('legend', Craft::t('teamleader-focus', 'Company'), ['class' => 'h6']) .
-                    Html::tag('div', self::metaFieldsHtmlContacts($element), ['class' => 'meta']) .
+                //    Html::tag('div', self::metaFieldsHtmlContacts($element), ['class' => 'meta']) .
                     Html::endTag('fieldset');
                 break;
             default:

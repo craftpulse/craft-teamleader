@@ -55,6 +55,8 @@ class Deal extends Element
     public ?string $phase = null;
     public ?string $state = null;
 
+    public ?string $teamleaderId = null;
+
     private ?FieldLayout $fieldLayout = null;
 
     // Public Static Methods
@@ -304,7 +306,7 @@ class Deal extends Element
     public function getCompanies(): array
     {
         if ($this->id && $this->companyId) {
-            return Company::find($this->companyId)->all();
+            return Company::find(['id' => $this->companyId])->all();
         }
 
         return [];

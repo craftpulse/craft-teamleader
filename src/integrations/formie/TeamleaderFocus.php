@@ -12,9 +12,13 @@ namespace craftpulse\teamleader\integrations\formie;
 
 use Craft;
 use craft\helpers\Json;
+use craft\elements\Entry as EntryElement;
 
 use craftpulse\teamleader\Teamleader;
 use craftpulse\teamleader\auth\providers\TeamleaderFocus as TeamleaderFocusProvider;
+use craftpulse\teamleader\elements\Company as TLCompany;
+use craftpulse\teamleader\elements\Contact as TLContact;
+use craftpulse\teamleader\elements\Deal as TLDeal;
 
 use Illuminate\Support\Collection;
 use Twig\Error\LoaderError;
@@ -98,6 +102,10 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      * @var string|null
      */
     public ?string $companyId = null;
+    /**
+     * @var string|null
+     */
+    public ?string $dealId = null;
 
     /**
      * @var array|null
@@ -111,6 +119,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      * @var array|null
      */
     public ?array $dealsFieldMapping = null;
+
 
     // Public Methods
     // =========================================================================
@@ -203,6 +212,71 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             $companyValues = $this->getFieldMappingValues($submission, $this->companiesFieldMapping, 'companies');
             $dealsValues = $this->getFieldMappingValues($submission, $this->dealsFieldMapping, 'deals');
 
+            if ($this->mapToCompanies) {
+                $companyPayload = $this->_prepPayload($companyValues, 'companies');
+                $endpoint = 'companies.add';
+
+                // First check if we already have a user with the primary email address attached.
+
+                
+                $filterPayload = [
+                    'filter' => [
+                        'vat_number' => Teamleader::$plugin->teamleaderConnector->formatVatNumber($companyValues['vat_number']),
+                    ]
+                ];
+
+                $response = $this->deliverPayload($submission, 'companies.list', $filterPayload);
+                $currentCompany = Collection::make($response['data'])->first();
+
+                // Make sure we send a "contacts.update" request if we have an actual response id.
+                if(!empty($currentCompany['id'])) {
+                    $endpoint = 'companies.update';
+                    $companyPayload['id'] = $currentCompany['id'];
+                    $this->companyId = $currentCompany['id'];
+                }
+
+                $response = $this->deliverPayload($submission, $endpoint, $companyPayload);
+
+                if ($response === false) {
+                    return true;
+                }
+
+                if($endpoint === 'companies.add') {
+                    $this->companyId = $response['data']['id'] ?? null;
+
+                    if (is_null($this->companyId)) {
+                        Integration::error($this, Craft::t('formie', 'Missing return “id” {response}. Sent payload {payload}', [
+                            'response' => Json::encode($response),
+                            'payload' => Json::encode($contactValues),
+                        ]), true);
+
+                        return false;
+                    }
+                } else {
+                    if (!empty($response)) {
+                        Integration::error($this, Craft::t('formie', 'Invalid response {response} Sent payload {payload}', [
+                            'response' => Json::encode($response),
+                            'payload' => Json::encode($contactValues),
+                        ]), true);
+
+                        return false;
+                    }
+                }
+
+                
+                $compElement = new TLCompany();
+                $compElement->title = $submission->companyName;
+                $compElement->teamleaderId = $this->companyId;
+                if(Craft::$app->elements->saveElement($compElement)) {
+ 
+                } else {
+                    throw new \Exception("Couldn't save new Company: " . print_r($compElement->getErrors(), true));
+                }
+
+
+            }
+
+
             if ($this->mapToContacts) {
                 $contactPayload = $this->_prepPayload($contactValues, 'contacts');
                 $endpoint = 'contacts.add';
@@ -255,56 +329,16 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                         return false;
                     }
                 }
-            }
 
-            if ($this->mapToCompanies) {
-                $companyPayload = $this->_prepPayload($companyValues, 'companies');
-                $endpoint = 'companies.add';
+                                
+                $contactElement = new TLContact();
+                $contactElement->firstName = $submission->firstName;
+                $contactElement->lastName = $submission->lastName;
+                $contactElement->teamleaderId = $this->userId;
+                if(Craft::$app->elements->saveElement($contactElement)) {
 
-                // First check if we already have a user with the primary email address attached.
-
-                $filterPayload = [
-                    'filter' => [
-                        'vat_number' => Teamleader::$plugin->teamleaderConnector->formatVatNumber($companyValues['vat_number']),
-                    ]
-                ];
-
-                $response = $this->deliverPayload($submission, 'companies.list', $filterPayload);
-                $currentCompany = Collection::make($response['data'])->first();
-
-                // Make sure we send a "contacts.update" request if we have an actual response id.
-                if(!empty($currentCompany['id'])) {
-                    $endpoint = 'companies.update';
-                    $companyPayload['id'] = $currentCompany['id'];
-                    $this->companyId = $currentCompany['id'];
-                }
-
-                $response = $this->deliverPayload($submission, $endpoint, $companyPayload);
-
-                if ($response === false) {
-                    return true;
-                }
-
-                if($endpoint === 'companies.add') {
-                    $this->companyId = $response['data']['id'] ?? null;
-
-                    if (is_null($this->companyId)) {
-                        Integration::error($this, Craft::t('formie', 'Missing return “id” {response}. Sent payload {payload}', [
-                            'response' => Json::encode($response),
-                            'payload' => Json::encode($contactValues),
-                        ]), true);
-
-                        return false;
-                    }
                 } else {
-                    if (!empty($response)) {
-                        Integration::error($this, Craft::t('formie', 'Invalid response {response} Sent payload {payload}', [
-                            'response' => Json::encode($response),
-                            'payload' => Json::encode($contactValues),
-                        ]), true);
-
-                        return false;
-                    }
+                    throw new \Exception("Couldn't save new Contact: " . print_r($contactElement->getErrors(), true));
                 }
             }
 
@@ -323,9 +357,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     return true;
                 }
 
-                $dealId = $response['data']['id'] ?? null;
+                $this->dealId = $response['data']['id'] ?? null;
 
-                if (is_null($dealId)) {
+                if (is_null($this->dealId)) {
                     Integration::error($this, Craft::t('formie', 'Missing return “id” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($dealsValues),
@@ -333,6 +367,31 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
 
                     return false;
                 }
+
+                $dealElement = new TLDeal();
+                $dealElement->title = $submission->teamleaderTitle;
+                $dealElement->teamleaderId = $this->dealId;
+                $dealElement->companyId = $compElement->id;
+                $dealElement->contactId = $contactElement->id;
+                if(Craft::$app->elements->saveElement($dealElement)) {
+
+                } else {
+                    throw new \Exception("Couldn't save new Deal: " . print_r($dealElement->getErrors(), true));
+                }
+
+                $offer = new EntryElement();
+                $offer->siteId = $submission->siteId;
+                $offer->typeId = 101; // HARDCODED FOR NOW
+                $offer->sectionId = 44; // HARDCODED FOR NOW
+                $offer->title = $submission->teamleaderTitle;
+                $offer->setFieldValue('deal', [$dealElement->id]);
+                if(Craft::$app->elements->saveElement($offer)) {
+
+                } else {
+                    throw new \Exception("Couldn't save new Offer: " . print_r($offer->getErrors(), true));
+                }
+
+
             }
         } catch (Exception $error) {
             Integration::apiError($this, $error);
@@ -639,7 +698,11 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 ];
             }
 
-            $payload['title'] = $this->dealTitle;
+            
+            if(!isset($payload['title']) || !($payload['title']) || trim($payload['title']) == '') {
+                $payload['title'] = $this->dealTitle;
+            }
+
         }
 
         return $payload;
@@ -669,4 +732,5 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             return null;
         }
     }
+
 }

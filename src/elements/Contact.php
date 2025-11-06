@@ -38,7 +38,7 @@ class Contact extends Element
     public ?string $salutation = null;
     public array|string $emails = [];
     public array|string $telephones = [];
-    public ?int $teamleaderId = null;
+    public ?string $teamleaderId = null;
     public array|Collection|string $companies = [];
 
     private ?FieldLayout $fieldLayout = null;
