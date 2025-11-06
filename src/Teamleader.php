@@ -12,6 +12,7 @@ namespace craftpulse\teamleader;
 
 use Craft;
 use craft\services\Fields;
+use craft\helpers\Db;
 use craftpulse\teamleader\fields\DealField;
 use craftpulse\teamleader\fields\QuotationField;
 use Monolog\Formatter\LineFormatter;
@@ -42,6 +43,9 @@ use craftpulse\teamleader\models\SettingsModel;
 use craftpulse\teamleader\services\ServicesTrait;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Integrations;
+use verbb\formie\events\SubmissionEvent;
+use verbb\formie\services\Submissions;
+use verbb\formie\helpers\Table;
 use yii\base\Event;
 use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;
@@ -454,6 +458,22 @@ class Teamleader extends Plugin
             Integrations::EVENT_REGISTER_INTEGRATIONS,
             function (RegisterIntegrationsEvent $event) {
                 $event->crm[] = TeamleaderFocus::class;
+            }
+        );
+
+        Event::on(
+            Submissions::class,
+            Submissions::EVENT_BEFORE_SUBMISSION,
+            function (SubmissionEvent $event) {
+                $submission = $event->submission;
+                // only do stuff on the Price Request forms
+                if(str_contains($submission->getFormHandle(), 'priceRequest')) {
+
+                    // set a title for the Teamleader submission
+                    $tbentry = $submission->teambuilding[0]['teambuildingName']->one();
+                    $submission->teamleaderTitle = date("Ymd") . '-' . $submission->companyName . '-' . $tbentry->title;
+                    $submission->siteIdNumber = $submission->siteId;
+                }
             }
         );
     }
