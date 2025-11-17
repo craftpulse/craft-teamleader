@@ -466,12 +466,13 @@ class Teamleader extends Plugin
             Submissions::EVENT_BEFORE_SUBMISSION,
             function (SubmissionEvent $event) {
                 $submission = $event->submission;
+
                 // only do stuff on the Price Request forms
                 if(str_contains($submission->getFormHandle(), 'priceRequest')) {
 
                     // set a title for the Teamleader submission
                     $tbentry = $submission->teambuilding[0]['teambuildingName']->one();
-                    $submission->teamleaderTitle = date("Ymd") . '-' . $submission->companyName . '-' . $tbentry->title;
+                    $submission->teamleaderTitle = date("ymd") . ' - ' . $submission->companyName . ' - ' . $submission->numberOfParticipants . ' participants - ' . $tbentry->title;
                     $submission->siteIdNumber = $submission->siteId;
                 }
             }
