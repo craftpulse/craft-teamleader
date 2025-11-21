@@ -212,9 +212,13 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             $companyValues = $this->getFieldMappingValues($submission, $this->companiesFieldMapping, 'companies');
             $dealsValues = $this->getFieldMappingValues($submission, $this->dealsFieldMapping, 'deals');
 
-            if ($this->mapToCompanies) {
+
+            if ($this->mapToCompanies && !($submission->unknownVATNumber)) {
                 $companyPayload = $this->_prepPayload($companyValues, 'companies');
                 $endpoint = 'companies.add';
+
+
+
 
                 // First check if we already have a user with the primary email address attached.
 
@@ -227,6 +231,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
 
                 $response = $this->deliverPayload($submission, 'companies.list', $filterPayload);
                 $currentCompany = Collection::make($response['data'])->first();
+
 
                 // Make sure we send a "contacts.update" request if we have an actual response id.
                 if(!empty($currentCompany['id'])) {
@@ -281,6 +286,8 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             if ($this->mapToContacts) {
                 $contactPayload = $this->_prepPayload($contactValues, 'contacts');
                 $endpoint = 'contacts.add';
+
+
 
                 // First check if we already have a user with the primary email address attached.
 
@@ -348,7 +355,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $options = [
                     'contact_person_id' => $this->userId ?? '',
                     'company_id' => $this->companyId ?? '',
+                    'vat_unknown' => $submission->unknownVATNumber,
                 ];
+
 
                 $dealPayload = $this->_prepPayload($dealsValues, 'deals', $options);
 
@@ -372,7 +381,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $dealElement = new TLDeal();
                 $dealElement->title = $submission->teamleaderTitle;
                 $dealElement->teamleaderId = $this->dealId;
+                if(isset($compElement)) {
                 $dealElement->companyId = $compElement->id;
+                }
                 $dealElement->contactId = $contactElement->id;
                 if(Craft::$app->elements->saveElement($dealElement)) {
 
@@ -551,6 +562,11 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                         'name' => Craft::t('formie', 'Deal Value'),
                         'required' => false,
                     ]),
+                    new IntegrationField([
+                        'handle' => 'remarks',
+                        'name' => Craft::t('formie', 'Extra Information'),
+                        'required' => false,
+                    ]),
                 ], $this->_getCustomFields($fields));
             }
         } catch (Exception $error) {
@@ -641,6 +657,8 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     private function _prepPayload(array $fields, string $context, array $options = []): array
     {
         $payload = $fields;
+
+
         $payload['context'] = $context;
 
         if (in_array($context, ['contacts', 'companies'])) {
@@ -680,21 +698,31 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 unset($payload['company_name']);
             }
 
+            $payload = $this->_consolidateCustomFields($payload);
+
             return $payload;
         }
 
         if ($context === 'deals') {
+ 
             $payload['lead'] = [
                 'customer' => [
-                    'type' => $this->companyId ? 'company' : 'contact',
+                    'type' => ($this->companyId) ? 'company' : 'contact',
                     'id' => $this->companyId ?: $this->userId,
                 ],
-                'contact_person_id' => $this->userId ?: '',
             ];
 
+            if(!$options['vat_unknown']) {
+                $payload['lead']['contact_person_id'] = $this->userId ?: '';
+            }
+
+            $payload['responsible_user_id'] = '2259ab68-5394-08b0-a845-5b3c71fbae5f'; // Stephanie Le Clef
+            $payload['source_id'] = '15596014-44b1-0c0d-9c50-590a1f76d4ea'; // via offertegenerator Team Masters
+
             if(isset($payload['estimated_value'])) {
+                $amount = $payload['estimated_value'];
                 $payload['estimated_value'] = [
-                    'amount' => $payload['amount'],
+                    'amount' => floatval($amount),
                     'currency' => 'EUR',
                 ];
             }
@@ -704,9 +732,42 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $payload['title'] = $this->dealTitle;
             }
 
+            $tbconcept = Collection::make($payload['4a7243f4-3df6-0f2e-a54d-b31b33e9a4ad'])->map(function (mixed $value, string $key) {
+                $arr = Collection::make($value['teambuildingName'])->first();
+                return $arr['title'];
+            });
+
+            $payload['4a7243f4-3df6-0f2e-a54d-b31b33e9a4ad'] = $tbconcept->toArray();
+
         }
 
+        $payload = $this->_consolidateCustomFields($payload);
+
         return $payload;
+    }
+
+    private function _consolidateCustomFields(array $payload): ?array {
+        $payloadCollected = Collection::make($payload);
+        $customFields = $payloadCollected->filter(function (mixed $value, string $key) {
+            return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $key) !== 1 ? false : true;
+        });
+        $nonCustomFields = $payloadCollected->filter(function (mixed $value, string $key) {
+            return preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $key) !== 1 ? true : false;
+        });
+
+        $fixedCustom = $customFields->map(function (mixed $value, string $key) {
+            $arr = [];
+            $arr[] = [
+                'id' => $key,
+                'value' => $value
+            ];
+            return $arr;
+        })->values()->flatten(1);
+
+        $outputPayload = $nonCustomFields->toArray();
+        $outputPayload['custom_fields'] = $fixedCustom->toArray();
+
+        return $outputPayload;
     }
 
     /**

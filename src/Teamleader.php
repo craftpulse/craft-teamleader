@@ -51,6 +51,7 @@ use yii\base\InvalidRouteException;
 use yii\log\Dispatcher;
 use yii\log\Logger;
 
+
 /**
  * Class Teamleader
  *
@@ -474,6 +475,26 @@ class Teamleader extends Plugin
                     $tbentry = $submission->teambuilding[0]['teambuildingName']->one();
                     $submission->teamleaderTitle = date("ymd") . ' - ' . $submission->companyName . ' - ' . $submission->numberOfParticipants . ' participants - ' . $tbentry->title;
                     $submission->siteIdNumber = $submission->siteId;
+
+                    // fix pricing fields
+                    $euroPrice = $submission->indicativePrice;
+                    if($euroPrice) {
+                        $decimalPrice = floatval(str_replace(['€', '$', ','],'', $euroPrice));
+                        $submission->parsedPrice = $decimalPrice;
+                        $submission->grossProfit = round(($decimalPrice/2), 2);
+                    }
+                    
+                    // add date if null
+                    if(!$submission->doYouHaveAPreferredDateForTheTeambuidings) {
+                        $fixedDate = date_create_from_format('Y-m-d H:i', date('Y', strtotime('next year')) . '-01-01 12:01');
+                        $submission->doYouHaveAPreferredDateForTheTeambuidings = $fixedDate;
+                    }
+
+                    // fix VAT if it's unknown
+                    if($submission->unknownVATNumber) {
+                        $submission->companyNameForContact = $submission->companyName;
+                    }
+
                 }
             }
         );
