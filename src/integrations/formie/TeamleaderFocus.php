@@ -732,9 +732,11 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $payload['title'] = $this->dealTitle;
             }
 
+
+            // pull the titles out properly for the TBConcept field
             $tbconcept = Collection::make($payload['4a7243f4-3df6-0f2e-a54d-b31b33e9a4ad'])->map(function (mixed $value, string $key) {
                 $arr = Collection::make($value['teambuildingName'])->first();
-                return $arr['title'];
+                return $arr['field_TLMatchName'];
             });
 
             $payload['4a7243f4-3df6-0f2e-a54d-b31b33e9a4ad'] = $tbconcept->toArray();
