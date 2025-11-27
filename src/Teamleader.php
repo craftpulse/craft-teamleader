@@ -471,9 +471,14 @@ class Teamleader extends Plugin
                 // only do stuff on the Price Request forms
                 if(str_contains($submission->getFormHandle(), 'priceRequest')) {
 
-                    // set a title for the Teamleader submission
-                    $tbentry = $submission->teambuilding[0]['teambuildingName']->one();
-                    $submission->teamleaderTitle = date("ymd") . ' - ' . $submission->companyName . ' - ' . $submission->numberOfParticipants . ' participants - ' . $tbentry->title;
+                    // build and set a title for the Teamleader submission
+                    $tbentrytitle = [
+                        date("ymd"),
+                        $submission->companyName,
+                        $submission->numberOfParticipants . "pax",
+                        $submission->teambuilding[0]['teambuildingName']->one()->title,
+                    ];
+                    $submission->teamleaderTitle = implode('-', $tbentrytitle);
                     $submission->siteIdNumber = $submission->siteId;
 
                     // fix pricing fields
@@ -483,7 +488,7 @@ class Teamleader extends Plugin
                         $submission->parsedPrice = $decimalPrice;
                         $submission->grossProfit = round(($decimalPrice/2), 2);
                     }
-                    
+
                     // add date if null
                     if(!$submission->doYouHaveAPreferredDateForTheTeambuidings) {
                         $fixedDate = date_create_from_format('Y-m-d H:i', date('Y', strtotime('next year')) . '-01-01 12:01');

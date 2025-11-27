@@ -212,17 +212,13 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             $companyValues = $this->getFieldMappingValues($submission, $this->companiesFieldMapping, 'companies');
             $dealsValues = $this->getFieldMappingValues($submission, $this->dealsFieldMapping, 'deals');
 
-
             if ($this->mapToCompanies && !($submission->unknownVATNumber)) {
                 $companyPayload = $this->_prepPayload($companyValues, 'companies');
                 $endpoint = 'companies.add';
 
+                // First check if we already have a company with this VAT number attached.
 
 
-
-                // First check if we already have a user with the primary email address attached.
-
-                
                 $filterPayload = [
                     'filter' => [
                         'vat_number' => Teamleader::$plugin->teamleaderConnector->formatVatNumber($companyValues['vat_number']),
@@ -233,7 +229,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $currentCompany = Collection::make($response['data'])->first();
 
 
-                // Make sure we send a "contacts.update" request if we have an actual response id.
+                // Make sure we send a "company.update" request if we have an actual response id.
                 if(!empty($currentCompany['id'])) {
                     $endpoint = 'companies.update';
                     $companyPayload['id'] = $currentCompany['id'];
@@ -268,13 +264,13 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     }
                 }
 
-                
+
                 $compElement = new TLCompany();
                 $compElement->title = $submission->companyName;
                 $compElement->teamleaderId = $this->companyId;
                 $compElement->vatNumber = $submission->vatNumber;
                 if(Craft::$app->elements->saveElement($compElement)) {
- 
+
                 } else {
                     throw new \Exception("Couldn't save new Company: " . print_r($compElement->getErrors(), true));
                 }
@@ -306,6 +302,32 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 // Make sure we send a "contacts.update" request if we have an actual response id.
                 if(!empty($currentUser['id'])) {
                     $endpoint = 'contacts.update';
+
+                    // since they're not new, we need to remove the tags and fix the rating
+
+                    // we have to get the rating from a contacts.info call and then manipulate this data in an ugly way
+                    $contactExisting = $this->deliverPayload($submission, 'contacts.info', ['id' => $currentUser['id']]);
+                    $existingCustomRating = Collection::make($contactExisting['data']['custom_fields'])->filter(function (mixed $value, int $key) {
+                        return $value['definition']['id'] == 'fc33a415-d4bf-01fe-ad4a-b0c9c76d77b0';
+                    })->first();
+
+                    $fixPayload = Collection::make($contactPayload['custom_fields']);
+
+                    $fixedCustomFields = $fixPayload->map(function (mixed $value, int $key) use ($existingCustomRating) {
+                        if($value['id'] == 'fc33a415-d4bf-01fe-ad4a-b0c9c76d77b0') {
+                            $value['value'] = $existingCustomRating['value'];
+                            return $value;
+                        } else {
+                            return $value;
+                        }
+                    })->toArray();
+
+                    // replace our custom_fields subarray with our new one
+                    $contactPayload['custom_fields'] = $fixedCustomFields;
+
+                    // then unset our tags
+                    unset($contactPayload['tags']);
+
                     $contactPayload['id'] = $currentUser['id'];
                     $this->userId = $currentUser['id'];
                 }
@@ -338,7 +360,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     }
                 }
 
-                                
+
                 $contactElement = new TLContact();
                 $contactElement->firstName = $submission->firstName;
                 $contactElement->lastName = $submission->lastName;
@@ -698,13 +720,15 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 unset($payload['company_name']);
             }
 
-            $payload = $this->_consolidateCustomFields($payload);
 
-            return $payload;
+        }
+
+        if ($context === 'contacts') {
+            $payload['tags'] = ['prospect'];
         }
 
         if ($context === 'deals') {
- 
+
             $payload['lead'] = [
                 'customer' => [
                     'type' => ($this->companyId) ? 'company' : 'contact',
@@ -727,7 +751,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 ];
             }
 
-            
+
             if(!isset($payload['title']) || !($payload['title']) || trim($payload['title']) == '') {
                 $payload['title'] = $this->dealTitle;
             }
