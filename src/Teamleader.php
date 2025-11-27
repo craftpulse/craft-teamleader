@@ -472,16 +472,19 @@ class Teamleader extends Plugin
                 if(str_contains($submission->getFormHandle(), 'priceRequest')) {
 
                     // build and set a title for the Teamleader submission
+                    $tbList = $submission->teambuilding;
+                    $tbName = (count($tbList) > 1) ? 'Teambuilding' : $tbList[0]['teambuildingName']->one()->title;
+
                     $tbentrytitle = [
                         date("ymd"),
                         $submission->companyName,
                         $submission->numberOfParticipants . "pax",
-                        $submission->teambuilding[0]['teambuildingName']->one()->title,
+                        $tbName,
                     ];
                     $submission->teamleaderTitle = implode('-', $tbentrytitle);
                     $submission->siteIdNumber = $submission->siteId;
 
-                    // fix pricing fields
+                    // fix and set pricing fields
                     $euroPrice = $submission->indicativePrice;
                     if($euroPrice) {
                         $decimalPrice = floatval(str_replace(['€', '$', ','],'', $euroPrice));
