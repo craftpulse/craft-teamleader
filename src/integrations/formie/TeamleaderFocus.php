@@ -15,6 +15,7 @@ use craft\helpers\App;
 use craft\helpers\Json;
 
 use craftpulse\teamleader\auth\providers\TeamleaderFocus as TeamleaderFocusProvider;
+use craftpulse\teamleader\helpers\VatHelper;
 
 use Illuminate\Support\Collection;
 use Throwable;
@@ -69,26 +70,32 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      * @var bool
      */
     public bool $mapToContacts = false;
+
     /**
      * @var bool
      */
     public bool $mapToCompanies = false;
+
     /**
      * @var bool
      */
     public bool $mapToDeals = false;
+
     /**
      * @var bool
      */
     public bool $linkToCompany = false;
+
     /**
      * @var string|null
      */
     public ?string $dealTitle = null;
+
     /**
      * @var string|null
      */
     public ?string $userId = null;
+
     /**
      * @var string|null
      */
@@ -283,21 +290,26 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $endpoint = 'companies.add';
 
                 // First check if we already have a user with the primary email address attached.
+                // @TODO - we can make this a lot fancier to update stuff - need to check some Craft CMS templates to make it prettier these settings
 
-                $filterPayload = [
-                    'filter' => [
-                        'vat_number' => $this->_formatVatNumber($companyValues['vat_number']),
-                    ]
-                ];
+                // only do this if we have an actual VAT number - to save an API call.
+                // create an enum for types to make mapToCompanies or mapToContacts dynamically?
+                if(isset($companyPayload['vat_number'])) {
+                    $filterPayload = [
+                        'filter' => [
+                            'vat_number' => VatHelper::formatVatNumber($companyValues['vat_number']),
+                        ]
+                    ];
 
-                $response = $this->deliverPayload($submission, 'companies.list', $filterPayload);
-                $currentCompany = Collection::make($response['data'])->first();
+                    $response = $this->deliverPayload($submission, 'companies.list', $filterPayload);
+                    $currentCompany = Collection::make($response['data'])->first();
 
-                // Make sure we send a "contacts.update" request if we have an actual response id.
-                if(!empty($currentCompany['id'])) {
-                    $endpoint = 'companies.update';
-                    $companyPayload['id'] = $currentCompany['id'];
-                    $this->companyId = $currentCompany['id'];
+                    // Make sure we send a "contacts.update" request if we have an actual response id.
+                    if (!empty($currentCompany['id'])) {
+                        $endpoint = 'companies.update';
+                        $companyPayload['id'] = $currentCompany['id'];
+                        $this->companyId = $currentCompany['id'];
+                    }
                 }
 
                 $response = $this->deliverPayload($submission, $endpoint, $companyPayload);
@@ -453,7 +465,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     new IntegrationField([
                         'handle' => 'email',
                         'name' => Craft::t('formie', 'Email address'),
-                        'required' => true,
+                        'required' => false,
                     ]),
                     // @TODO - build support for repeater fields, since Teamleader Focus supports multiple addresses in an array
                     new IntegrationField([
@@ -483,6 +495,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     new IntegrationField([
                         'handle' => 'vat_number',
                         'name' => Craft::t('formie', 'VAT Number'),
+                        'required' => true,
                     ]),
                     new IntegrationField([
                         'handle' => 'national_identification_number',
@@ -507,7 +520,23 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             if ($this->mapToDeals) {
                 $fields = $this->_fetchCustomFields('sale');
 
-                $settings['deals'] = array_merge([], $this->_getCustomFields($fields));
+                $settings['deals'] = array_merge([
+                    new IntegrationField([
+                        'handle' => 'title',
+                        'name' => Craft::t('formie', 'Deal Title'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'estimated_value',
+                        'name' => Craft::t('formie', 'Deal Value'),
+                        'required' => false,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'remarks',
+                        'name' => Craft::t('formie', 'Extra Information'),
+                        'required' => false,
+                    ]),
+                ], $this->_getCustomFields($fields));
             }
         } catch (Exception $error) {
             Integration::apiError($this, $error);
@@ -521,13 +550,17 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      * @return array|null
      */
     private function _fetchCustomFields(string $context): ?array {
-        $filters = [
+        $options = [
             'filter' => [
                 'context' => $context,
+            ],
+            // @TODO create setting.
+            'page' => [
+                'size' => 100,
             ]
         ];
 
-        $response = $this->request('POST', 'customFieldDefinitions.list', $filters);
+        $response = $this->request('POST', 'customFieldDefinitions.list', ['json' => $options]);
         $customFields = $response['data'];
 
         if (empty($customFields)) {
@@ -569,7 +602,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      */
     private function _convertFieldType(string $fieldType): string
     {
-        $fieldTypes= [
+        $fieldTypes = [
             'multi_select' => IntegrationField::TYPE_ARRAY,
             'date' => IntegrationField::TYPE_DATE,
             'money' => IntegrationField::TYPE_FLOAT,
@@ -616,14 +649,14 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     'type' => 'phone',
                     'number' => $payload['mobile_phone'],
                 ];
-                unset($payload['phone']);
+                unset($payload['mobile_phone']);
             }
 
-            if(isset($payload['address'])) {
-                $address = $this->_generateAddressObject($payload['address']);
-                if($address) {
+            $addressSource = $payload['address'] ?? (isset($payload['addressLine1']) ? $payload : null);
+
+            if ($addressSource && $address = $this->_generateAddressObject($addressSource)) {
                     $payload['addresses'][] = $address;
-                }
+                    unset($payload['addressLine1'], $payload['postal_code'], $payload['city'], $payload['country']);
             }
 
             if(isset($payload['company_name'])) {
@@ -642,6 +675,14 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 ],
                 'contact_person_id' => $this->userId ?: '',
             ];
+
+            if(isset($payload['estimated_value'])) {
+                $payload['estimated_value'] = [
+                    'amount' => $payload['estimated_value'],
+                    'currency' => 'EUR',
+                ];
+            }
+
             $payload['title'] = $this->dealTitle;
         }
 
@@ -654,58 +695,23 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      */
     private function _generateAddressObject(array $fields): ?array {
         // All fields need to be there, otherwise we won't generate it.
-        $payload = $fields;
         $required_fields = ['addressLine1', 'postal_code', 'city', 'country'];
         $missing_values = array_diff($required_fields, array_keys($fields));
 
-        if (!empty($missing_values)) {
-            $address = [
-                'type' => 'primary',
-                'address' => [
-                    'line_1' => $payload['addressLine1'],
-                    'postal_code' => $payload['postal_code'],
-                    'city' => $payload['city'],
-                    'country' => $payload['country'],
-                ]
-            ];
-
-            return $address;
-        } else {
+        if ($missing_values) {
             return null;
         }
-    }
 
-    /**
-     * @param string $vatNumber
-     * @return bool|string
-     */
-    private function _formatVatNumber(string $vatNumber): bool|string
-    {
-        // Extract first two and ensure it's valid A-Z
-        $countryCode = strtoupper(substr($vatNumber, 0, 2));
+        $countries = Collection::make(Craft::$app->getAddresses()->getCountryList())->flip();
 
-        // Ensure the country code is valid (basic check: two uppercase letters)
-        if (!preg_match('/^[A-Z]{2}$/', $countryCode)) {
-            return false; // Invalid country code
-        }
-
-        // Extract the numerical part and remove non-numeric characters
-        $vatNumber = preg_replace('/[^0-9]/', '', substr($vatNumber, 2));
-
-        // Ensure it has at least 8 and at most 12 digits (common VAT length range in EU)
-        if (strlen($vatNumber) < 8 || strlen($vatNumber) > 12) {
-            return false; // Invalid format
-        }
-
-        // Format the VAT number according to common EU formats
-        if (strlen($vatNumber) === 9) {
-            $formattedNumber = substr($vatNumber, 0, 3) . '.' . substr($vatNumber, 3, 3) . '.' . substr($vatNumber, 6, 3);
-        } elseif (strlen($vatNumber) === 10) {
-            $formattedNumber = substr($vatNumber, 0, 4) . '.' . substr($vatNumber, 4, 3) . '.' . substr($vatNumber, 7, 3);
-        } else {
-            $formattedNumber = wordwrap($vatNumber, 3, '.', true); // General formatting
-        }
-
-        return $countryCode . ' ' . $formattedNumber;
+        return [
+            'type' => 'primary',
+            'address' => [
+                'line_1' => $fields['addressLine1'],
+                'postal_code' => $fields['postal_code'],
+                'city' => $fields['city'],
+                'country' => $countries->get($fields['country']),
+            ]
+        ];
     }
 }

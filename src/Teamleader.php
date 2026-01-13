@@ -15,7 +15,9 @@ use craft\base\Plugin;
 
 use craftpulse\teamleader\integrations\formie\TeamleaderFocus;
 
+use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
+use verbb\formie\services\Fields;
 use verbb\formie\services\Integrations;
 use yii\base\Event;
 
