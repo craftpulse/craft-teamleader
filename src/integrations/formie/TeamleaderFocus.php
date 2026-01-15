@@ -547,9 +547,10 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
 
     /**
      * @param string $context
-     * @return array|null
+     * @return array
      */
-    private function _fetchCustomFields(string $context): ?array {
+    private function _fetchCustomFields(string $context): array
+    {
         $options = [
             'filter' => [
                 'context' => $context,
@@ -564,7 +565,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
         $customFields = $response['data'];
 
         if (empty($customFields)) {
-            return null;
+            return [];
         } else {
             return Collection::make($customFields)->filter(fn($field) => $field['context'] === $context)->toArray();
         }
@@ -586,7 +587,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
             }
 
             $customFields[] = new IntegrationField([
-                'handle' => $field['id'],
+                'handle' => 'custom:' . $field['id'],
                 'name' => $field['label'],
                 'type' => $this->_convertFieldType($type),
                 'sourceType' => $type,
@@ -625,7 +626,12 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     private function _prepPayload(array $fields, string $context, array $options = []): array
     {
         $payload = $fields;
-        $payload['context'] = $context;
+
+        $customFields = $this->_prepCustomFields($payload);
+
+        if (!empty($customFields)) {
+            $payload['custom_fields'] = $customFields;
+        }
 
         if (in_array($context, ['contacts', 'companies'])) {
             if(isset($payload['email'])) {
@@ -646,7 +652,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
 
             if(isset($payload['mobile_phone'])) {
                 $payload['telephones'][] = [
-                    'type' => 'phone',
+                    'type' => 'mobile',
                     'number' => $payload['mobile_phone'],
                 ];
                 unset($payload['mobile_phone']);
@@ -673,8 +679,11 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     'type' => $this->companyId ? 'company' : 'contact',
                     'id' => $this->companyId ?: $this->userId,
                 ],
-                'contact_person_id' => $this->userId ?: '',
             ];
+
+            if ($this->companyId && $this->userId) {
+                $payload['lead']['contact_person_id'] = $this->userId;
+            }
 
             if(isset($payload['estimated_value'])) {
                 $payload['estimated_value'] = [
@@ -687,6 +696,40 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
         }
 
         return $payload;
+    }
+
+    /**
+     * Extract custom fields from the payload and transform them to Teamleader API format
+     *
+     * Teamleader expects custom fields as:
+     * "custom_fields": [
+     *   { "id": "uuid", "value": "value" },
+     *   ...
+     * ]
+     *
+     * @param array $fields Reference to the fields array (will be modified to remove custom fields)
+     * @return array The custom_fields array in Teamleader format
+     */
+    private function _prepCustomFields(array &$fields): array
+    {
+        $customFields = [];
+
+        foreach ($fields as $key => $value) {
+            if (str_starts_with($key, 'custom:')) {
+                unset($fields[$key]);
+
+                if ($value === null || $value === '') {
+                    continue;
+                }
+
+                $customFields[] = [
+                    'id' => str_replace('custom:', '', $key),
+                    'value' => $value,
+                ];
+            }
+        }
+
+        return $customFields;
     }
 
     /**
