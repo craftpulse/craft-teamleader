@@ -342,7 +342,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     $filterPayload = [
                         'filter' => [
                             'vat_number' => VatHelper::formatVatNumber($companyValues['vat_number']),
-                        ]
+                        ],
+                        // Include the custom fields to preserve them when updating.
+                        'includes' => ['custom_fields'],
                     ];
 
                     $response = $this->deliverPayload($submission, 'companies.list', $filterPayload);
@@ -353,6 +355,26 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                         $endpoint = 'companies.update';
                         $companyPayload['id'] = $currentCompany['id'];
                         $this->companyId = $currentCompany['id'];
+
+                        // See if we need custom fields
+                        $existingCustomFields = $currentCompany['custom_fields'] ?? [];
+
+                        if (!empty($existingCustomFields)) {
+                            // Get the custom field ids from the form payload
+                            $formCustomFieldIds = array_column($companyPayload['custom_fields'], 'id');
+
+                            foreach ($existingCustomFields as $companyCustomField) {
+                                // The API returns the custom field id in the definition object
+                                $companyCustomFieldId = $companyCustomField['definition']['id'];
+
+                                if (!in_array($companyCustomFieldId, $formCustomFieldIds, true)) {
+                                    $companyPayload['custom_fields'][] = [
+                                        'id' => $companyCustomFieldId,
+                                        'value' => $companyCustomField['value'],
+                                    ];
+                                }
+                            }
+                        }
                     }
                 }
 
