@@ -218,6 +218,14 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     }
 
     /**
+     * Build the config array passed to the OAuth provider constructor.
+     *
+     * clientId / clientSecret / redirectUri are also set by parent
+     * (verbb/auth OAuthProviderTrait), but we re-set them defensively:
+     * this plugin uses a custom OAuth client (TeamleaderFocusClient) and
+     * the OAuth path is hard to debug when something silently drops a key.
+     * The duplication costs nothing at runtime and survives upstream drift.
+     *
      * @author CraftPulse
      */
     public function getOAuthProviderConfig(): array
@@ -225,6 +233,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
         $config = parent::getOAuthProviderConfig();
         $config['domain'] = $this->getApiDomain();
         $config['baseApiUrl'] = $this->getApiDomain();
+        $config['clientId'] = $this->getClientId();
+        $config['clientSecret'] = $this->getClientSecret();
+        $config['redirectUri'] = $this->getRedirectUri();
 
         return $config;
     }
