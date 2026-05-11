@@ -1,11 +1,15 @@
 <?php
+/**
+ * Teamleader plugin for Craft CMS
+ *
+ * @link      https://craft-pulse.com
+ * @copyright Copyright (c) 2025 CraftPulse
+ */
 
 namespace craftpulse\teamleader\auth\clients;
 
-use Craft;
-
-use craftpulse\teamleader\auth\clients\TeamleaderFocusResourceOwner;
 use craftpulse\teamleader\auth\grant\TeamleaderFocusRefreshTokenGrant;
+
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
@@ -15,18 +19,39 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * Class TeamleaderFocus
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.0.0
+ * League OAuth2 provider for Teamleader Focus. Owns the OAuth + API base URL
+ * constants used across the plugin.
  *
+ * @author CraftPulse
+ * @since  5.0.0
  */
 class TeamleaderFocus extends AbstractProvider
 {
+    // Traits
+    // =========================================================================
+
     use BearerAuthorizationTrait;
 
-    private const OAUTH_BASE_URL = 'https://focus.teamleader.eu/oauth2/';
-    private const API_BASE_URL = 'https://api.focus.teamleader.eu/';
+    // Const Properties
+    // =========================================================================
 
+    /**
+     * @var string Base URL for the Teamleader Focus OAuth2 endpoints.
+     */
+    public const OAUTH_BASE_URL = 'https://focus.teamleader.eu/oauth2/';
+
+    /**
+     * @var string Base URL for the Teamleader Focus API. Referenced from the
+     *             Formie integration and the OAuth provider — single source of truth.
+     */
+    public const API_BASE_URL = 'https://api.focus.teamleader.eu/';
+
+    // Public Methods
+    // =========================================================================
+
+    /**
+     * @author CraftPulse
+     */
     public function __construct(array $options = [], array $collaborators = [])
     {
         parent::__construct($options, $collaborators);
@@ -36,6 +61,8 @@ class TeamleaderFocus extends AbstractProvider
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getBaseAuthorizationUrl(): string
     {
@@ -44,6 +71,8 @@ class TeamleaderFocus extends AbstractProvider
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getBaseAccessTokenUrl(array $params): string
     {
@@ -52,14 +81,21 @@ class TeamleaderFocus extends AbstractProvider
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getResourceOwnerDetailsUrl(AccessToken $token): string
     {
         return self::API_BASE_URL . 'users.me';
     }
 
+    // Protected Methods
+    // =========================================================================
+
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     protected function getDefaultScopes(): array
     {
@@ -68,6 +104,8 @@ class TeamleaderFocus extends AbstractProvider
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     protected function getAuthorizationHeaders($token = null): array
     {
@@ -80,6 +118,8 @@ class TeamleaderFocus extends AbstractProvider
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     protected function checkResponse(ResponseInterface $response, $data): void
     {
@@ -95,7 +135,7 @@ class TeamleaderFocus extends AbstractProvider
     /**
      * @inheritdoc
      *
-     * @return TeamleaderFocusResourceOwner
+     * @author CraftPulse
      */
     protected function createResourceOwner(array $response, AccessToken $token): TeamleaderFocusResourceOwner
     {
