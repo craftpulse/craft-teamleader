@@ -10,6 +10,7 @@
 - Fixed `_fetchCustomFields()` crashing when the API response omits the `data` key (e.g. 204 responses, partial errors). ([#20](https://github.com/craftpulse/craft-teamleader-focus/issues/20))
 - Fixed companies error logs encoding `$contactValues` instead of `$companyValues`, making company-related API failures impossible to debug. ([#20](https://github.com/craftpulse/craft-teamleader-focus/issues/20))
 - Fixed `getCurrencyOptions()` making a live API call on every CP page render. Now cached for 24h on success only — API failures fall back to defaults without polluting the cache. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
+- Fixed `contacts.linkToCompany` failing with "already linked" when the contact is already attached to the company. Now checks `companies.info` related_contacts first and skips the link call when the contact is already present. ([#22](https://github.com/craftpulse/craft-teamleader-focus/issues/22)) - Thanks [@ishetnogferre](https://github.com/ishetnogferre)
 
 ### Changed
 - Removed `declare(strict_types=1)` from `TeamleaderFocusRefreshTokenGrant` per Craft CMS plugin conventions. ([#12](https://github.com/craftpulse/craft-teamleader-focus/issues/12))
