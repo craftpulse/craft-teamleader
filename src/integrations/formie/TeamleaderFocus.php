@@ -294,10 +294,16 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     $userId = $currentUser['id'];
                 }
 
-                // Include tags in the main payload for adds; for updates, only when
-                // overwrite semantics are in effect. Append mode uses contacts.tag below.
-                if (!empty($tags) && ($endpoint === 'contacts.add' || !$this->appendContactTags)) {
-                    $contactPayload['tags'] = $tags;
+                // Handle tags based on endpoint and appendContactTags setting
+                if (!empty($tags)) {
+                    if ($endpoint === 'contacts.add') {
+                        // For new contacts, always include tags in the payload, they're new tags too.
+                        $contactPayload['tags'] = $tags;
+                    } elseif (!$this->appendContactTags) {
+                        // For existing contacts with appendContactTags=false, include in payload to OVERWRITE all tags
+                        // We will use another endpoint (contacts.tag) if it's contact.update - for performance reasons (2 API calls over 3)
+                        $contactPayload['tags'] = $tags;
+                    }
                 }
 
                 $response = $this->deliverPayload($submission, $endpoint, $contactPayload);
@@ -310,7 +316,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     $userId = $response['data']['id'] ?? null;
 
                     if ($userId === null) {
-                        Integration::error($this, Craft::t('formie', 'Missing return "id" {response}. Sent payload {payload}', [
+                        Integration::error($this, Craft::t('formie', 'Missing return “id” {response}. Sent payload {payload}', [
                             'response' => Json::encode($response),
                             'payload' => Json::encode($contactValues),
                         ]), true);
@@ -340,7 +346,11 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $companyPayload = $this->_prepPayload($companyValues, 'companies');
                 $endpoint = 'companies.add';
 
-                // Only look up by VAT — saves an API call when we don't have one.
+                // First check if we already have a user with the primary email address attached.
+                // @TODO - we can make this a lot fancier to update stuff - need to check some Craft CMS templates to make it prettier these settings
+
+                // only do this if we have an actual VAT number - to save an API call.
+                // create an enum for types to make mapToCompanies or mapToContacts dynamically?
                 if (isset($companyPayload['vat_number'])) {
                     $response = $this->deliverPayload($submission, 'companies.list', [
                         'filter' => [
@@ -356,8 +366,16 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     }
                 }
 
-                if (!empty($companyTags) && ($endpoint === 'companies.add' || !$this->appendCompanyTags)) {
-                    $companyPayload['tags'] = $companyTags;
+                // Handle tags based on endpoint and appendCompanyTags setting
+                if (!empty($companyTags)) {
+                    if ($endpoint === 'companies.add') {
+                        // For new companies, always include tags in the payload, they're new tags too.
+                        $companyPayload['tags'] = $companyTags;
+                    } elseif (!$this->appendCompanyTags) {
+                        // For existing companies with appendCompanyTags=false, include in payload to OVERWRITE all tags
+                        // We will use another endpoint (companies.tag) if it's companies.update - for performance reasons (2 API calls over 3)
+                        $companyPayload['tags'] = $companyTags;
+                    }
                 }
 
                 $response = $this->deliverPayload($submission, $endpoint, $companyPayload);
@@ -370,7 +388,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     $companyId = $response['data']['id'] ?? null;
 
                     if ($companyId === null) {
-                        Integration::error($this, Craft::t('formie', 'Missing return "id" {response}. Sent payload {payload}', [
+                        Integration::error($this, Craft::t('formie', 'Missing return “id” {response}. Sent payload {payload}', [
                             'response' => Json::encode($response),
                             'payload' => Json::encode($companyValues),
                         ]), true);
@@ -413,7 +431,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $dealId = $response['data']['id'] ?? null;
 
                 if ($dealId === null) {
-                    Integration::error($this, Craft::t('formie', 'Missing return "id" {response}. Sent payload {payload}', [
+                    Integration::error($this, Craft::t('formie', 'Missing return “id” {response}. Sent payload {payload}', [
                         'response' => Json::encode($response),
                         'payload' => Json::encode($dealsValues),
                     ]), true);
@@ -444,21 +462,70 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $fields = $this->_fetchCustomFields('contact');
 
                 $settings['contacts'] = array_merge([
-                    new IntegrationField(['handle' => 'salutation', 'name' => Craft::t('formie', 'Salutation')]),
-                    new IntegrationField(['handle' => 'first_name', 'name' => Craft::t('formie', 'First Name')]),
-                    new IntegrationField(['handle' => 'last_name', 'name' => Craft::t('formie', 'Last Name'), 'required' => true]),
-                    new IntegrationField(['handle' => 'email', 'name' => Craft::t('formie', 'Email address'), 'required' => true]),
-                    new IntegrationField(['handle' => 'mobile_phone', 'name' => Craft::t('formie', 'Mobile number')]),
-                    new IntegrationField(['handle' => 'phone', 'name' => Craft::t('formie', 'Phone number')]),
-                    new IntegrationField(['handle' => 'fax', 'name' => Craft::t('formie', 'Fax')]),
-                    new IntegrationField(['handle' => 'addressLine1', 'name' => Craft::t('formie', 'Address')]),
-                    new IntegrationField(['handle' => 'postal_code', 'name' => Craft::t('formie', 'Postal Code')]),
-                    new IntegrationField(['handle' => 'city', 'name' => Craft::t('formie', 'City')]),
-                    new IntegrationField(['handle' => 'country', 'name' => Craft::t('formie', 'Country')]),
-                    new IntegrationField(['handle' => 'language', 'name' => Craft::t('formie', 'Language')]),
-                    new IntegrationField(['handle' => 'remarks', 'name' => Craft::t('formie', 'Remarks (Markdown supported)')]),
-                    new IntegrationField(['handle' => 'tags', 'name' => Craft::t('formie', 'Tags')]),
-                    new IntegrationField(['handle' => 'marketing_mails_consent', 'name' => Craft::t('formie', 'Marketing Mails Consent'), 'type' => 'boolean']),
+                    new IntegrationField([
+                        'handle' => 'salutation',
+                        'name' => Craft::t('formie', 'Salutation'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'first_name',
+                        'name' => Craft::t('formie', 'First Name'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'last_name',
+                        'name' => Craft::t('formie', 'Last Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email address'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'mobile_phone',
+                        'name' => Craft::t('formie', 'Mobile number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'fax',
+                        'name' => Craft::t('formie', 'Fax'),
+                    ]),
+                    // @TODO - build support for repeater fields, since Teamleader Focus supports multiple addresses in an array
+                    new IntegrationField([
+                        'handle' => 'addressLine1',
+                        'name' => Craft::t('formie', 'Address'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'postal_code',
+                        'name' => Craft::t('formie', 'Postal Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'language',
+                        'name' => Craft::t('formie', 'Language'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'remarks',
+                        'name' => Craft::t('formie', 'Remarks (Markdown supported)'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'marketing_mails_consent',
+                        'name' => Craft::t('formie', 'Marketing Mails Consent'),
+                        'type' => 'boolean',
+                    ]),
                 ], $this->_getCustomFields($fields));
             }
 
@@ -466,21 +533,71 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $fields = $this->_fetchCustomFields('company');
 
                 $settings['companies'] = array_merge([
-                    new IntegrationField(['handle' => 'company_name', 'name' => Craft::t('formie', 'Company Name'), 'required' => true]),
-                    new IntegrationField(['handle' => 'email', 'name' => Craft::t('formie', 'Email address')]),
-                    new IntegrationField(['handle' => 'addressLine1', 'name' => Craft::t('formie', 'Address')]),
-                    new IntegrationField(['handle' => 'postal_code', 'name' => Craft::t('formie', 'Postal Code')]),
-                    new IntegrationField(['handle' => 'city', 'name' => Craft::t('formie', 'City')]),
-                    new IntegrationField(['handle' => 'country', 'name' => Craft::t('formie', 'Country')]),
-                    new IntegrationField(['handle' => 'phone', 'name' => Craft::t('formie', 'Phone number')]),
-                    new IntegrationField(['handle' => 'fax', 'name' => Craft::t('formie', 'Fax')]),
-                    new IntegrationField(['handle' => 'vat_number', 'name' => Craft::t('formie', 'VAT Number'), 'required' => true]),
-                    new IntegrationField(['handle' => 'national_identification_number', 'name' => Craft::t('formie', 'National Identification Number')]),
-                    new IntegrationField(['handle' => 'website', 'name' => Craft::t('formie', 'Website')]),
-                    new IntegrationField(['handle' => 'language', 'name' => Craft::t('formie', 'Language')]),
-                    new IntegrationField(['handle' => 'remarks', 'name' => Craft::t('formie', 'Remarks (Markdown supported)')]),
-                    new IntegrationField(['handle' => 'tags', 'name' => Craft::t('formie', 'Tags')]),
-                    new IntegrationField(['handle' => 'marketing_mails_consent', 'name' => Craft::t('formie', 'Marketing Mails Consent'), 'type' => 'boolean']),
+                    new IntegrationField([
+                        'handle' => 'company_name',
+                        'name' => Craft::t('formie', 'Company Name'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'email',
+                        'name' => Craft::t('formie', 'Email address'),
+                        'required' => false,
+                    ]),
+                    // @TODO - build support for repeater fields, since Teamleader Focus supports multiple addresses in an array
+                    new IntegrationField([
+                        'handle' => 'addressLine1',
+                        'name' => Craft::t('formie', 'Address'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'postal_code',
+                        'name' => Craft::t('formie', 'Postal Code'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'city',
+                        'name' => Craft::t('formie', 'City'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'country',
+                        'name' => Craft::t('formie', 'Country'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'phone',
+                        'name' => Craft::t('formie', 'Phone number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'fax',
+                        'name' => Craft::t('formie', 'Fax'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'vat_number',
+                        'name' => Craft::t('formie', 'VAT Number'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'national_identification_number',
+                        'name' => Craft::t('formie', 'National Identification Number'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'website',
+                        'name' => Craft::t('formie', 'Website'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'language',
+                        'name' => Craft::t('formie', 'Language'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'remarks',
+                        'name' => Craft::t('formie', 'Remarks (Markdown supported)'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'tags',
+                        'name' => Craft::t('formie', 'Tags'),
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'marketing_mails_consent',
+                        'name' => Craft::t('formie', 'Marketing Mails Consent'),
+                        'type' => 'boolean',
+                    ]),
                 ], $this->_getCustomFields($fields));
             }
 
@@ -488,10 +605,25 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 $fields = $this->_fetchCustomFields('sale');
 
                 $settings['deals'] = array_merge([
-                    new IntegrationField(['handle' => 'title', 'name' => Craft::t('formie', 'Deal Title')]),
-                    new IntegrationField(['handle' => 'estimated_value', 'name' => Craft::t('formie', 'Deal Value')]),
-                    new IntegrationField(['handle' => 'summary', 'name' => Craft::t('formie', 'Summary')]),
-                    new IntegrationField(['handle' => 'currency', 'name' => Craft::t('formie', 'Currency')]),
+                    new IntegrationField([
+                        'handle' => 'title',
+                        'name' => Craft::t('formie', 'Deal Title'),
+                        'required' => true,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'estimated_value',
+                        'name' => Craft::t('formie', 'Deal Value'),
+                        'required' => false,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'summary',
+                        'name' => Craft::t('formie', 'Summary'),
+                        'required' => false,
+                    ]),
+                    new IntegrationField([
+                        'handle' => 'currency',
+                        'name' => Craft::t('formie', 'Currency'),
+                    ]),
                 ], $this->_getCustomFields($fields));
             }
         } catch (Throwable $error) {
@@ -560,12 +692,17 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      */
     private function _fetchCustomFields(string $context): array
     {
-        $response = $this->request('POST', 'customFieldDefinitions.list', [
-            'json' => [
-                'filter' => ['context' => $context],
-                'page' => ['size' => 100],
+        $options = [
+            'filter' => [
+                'context' => $context,
             ],
-        ]);
+            // @TODO create setting.
+            'page' => [
+                'size' => 100,
+            ],
+        ];
+
+        $response = $this->request('POST', 'customFieldDefinitions.list', ['json' => $options]);
 
         $customFields = $response['data'] ?? [];
 

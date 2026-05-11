@@ -36,9 +36,9 @@ class TeamleaderFocus extends AbstractProvider
     // =========================================================================
 
     /**
-     * @var string Base URL for the Teamleader Focus OAuth2 endpoints.
+     * @var string Base URL for the Teamleader Focus OAuth2 endpoints. Only consumed inside this class.
      */
-    public const OAUTH_BASE_URL = 'https://focus.teamleader.eu/oauth2/';
+    private const OAUTH_BASE_URL = 'https://focus.teamleader.eu/oauth2/';
 
     /**
      * @var string Base URL for the Teamleader Focus API. Referenced from the

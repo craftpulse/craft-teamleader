@@ -384,4 +384,28 @@ class ClientType extends Field
 
         return parent::defineHtmlTag($key, $context);
     }
+
+    /**
+     * Check if the submitted value indicates a B2B (company) request.
+     *
+     * @param mixed $value The field value
+     *
+     * @author CraftPulse
+     */
+    public function isCompanyRequest(mixed $value): bool
+    {
+        return $value === self::TYPE_COMPANY;
+    }
+
+    /**
+     * Check if the submitted value indicates a B2C (contact-only) request.
+     *
+     * @param mixed $value The field value
+     *
+     * @author CraftPulse
+     */
+    public function isContactRequest(mixed $value): bool
+    {
+        return $value === self::TYPE_CONTACT;
+    }
 }
