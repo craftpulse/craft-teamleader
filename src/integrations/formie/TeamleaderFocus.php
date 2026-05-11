@@ -636,26 +636,35 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     }
 
     /**
-     * Fetch currency options from Teamleader Focus API, cached for 24h to avoid
-     * a live API call on every CP page render.
+     * Fetch currency options from Teamleader Focus API, cached for 24h on success.
+     * On API failure we return defaults without caching, so the next page load retries
+     * the API rather than pinning the fallback for the full TTL.
      *
      * @author CraftPulse
      */
     public function getCurrencyOptions(): array
     {
+        $cache = Craft::$app->getCache();
         $cacheKey = 'teamleader-focus:currencies:' . ($this->id ?? 'unsaved');
 
-        return Craft::$app->getCache()->getOrSet($cacheKey, function() {
-            try {
-                $response = $this->request('POST', 'currencies.exchangeRates', [
-                    'json' => ['base' => 'EUR'],
-                ]);
+        $cached = $cache->get($cacheKey);
 
-                return CurrencyHelper::formatCurrencyOptions($response['data'] ?? []);
-            } catch (Throwable $e) {
-                return CurrencyHelper::getDefaultCurrencies();
-            }
-        }, self::CURRENCY_CACHE_TTL);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        try {
+            $response = $this->request('POST', 'currencies.exchangeRates', [
+                'json' => ['base' => 'EUR'],
+            ]);
+
+            $options = CurrencyHelper::formatCurrencyOptions($response['data'] ?? []);
+            $cache->set($cacheKey, $options, self::CURRENCY_CACHE_TTL);
+
+            return $options;
+        } catch (Throwable $e) {
+            return CurrencyHelper::getDefaultCurrencies();
+        }
     }
 
     // Private Methods
@@ -849,8 +858,10 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 ];
             }
 
-            // Prefer the mapped form value; fall back to the static setting.
-            $payload['title'] = $payload['title'] ?? $this->dealTitle;
+            // Prefer the mapped form value when it has content; fall back to the static
+            // setting. !empty() check catches both unset and empty-string mapped values —
+            // an empty title would be rejected by the Teamleader API.
+            $payload['title'] = !empty($payload['title']) ? $payload['title'] : $this->dealTitle;
         }
 
         return $payload;
