@@ -19,6 +19,8 @@ use craftpulse\teamleader\helpers\ClientTypeHelper;
 use craftpulse\teamleader\helpers\CurrencyHelper;
 use craftpulse\teamleader\helpers\VatHelper;
 
+use Error;
+
 use Illuminate\Support\Collection;
 
 use Throwable;
@@ -439,7 +441,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     return false;
                 }
             }
-        } catch (Throwable $error) {
+        } catch (Exception|Error $error) {
             Integration::apiError($this, $error);
 
             return false;
@@ -626,7 +628,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     ]),
                 ], $this->_getCustomFields($fields));
             }
-        } catch (Throwable $error) {
+        } catch (Exception|Error $error) {
             Integration::apiError($this, $error);
         }
 
