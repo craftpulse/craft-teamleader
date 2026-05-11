@@ -1,4 +1,10 @@
 <?php
+/**
+ * Teamleader plugin for Craft CMS
+ *
+ * @link      https://craft-pulse.com
+ * @copyright Copyright (c) 2025 CraftPulse
+ */
 
 namespace craftpulse\teamleader\auth\clients;
 
@@ -8,26 +14,33 @@ use League\OAuth2\Client\Tool\ArrayAccessorTrait;
 /**
  * Class TeamleaderFocusResourceOwner
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.0.0
+ * Wraps the resource owner data returned by Teamleader Focus's users.me endpoint.
  *
+ * @author CraftPulse
+ * @since  5.0.0
  */
 class TeamleaderFocusResourceOwner implements ResourceOwnerInterface
 {
+    // Traits
+    // =========================================================================
+
     use ArrayAccessorTrait {
-        getValueByKey as arrayAccessorTraitGetValueByKey;
+        getValueByKey as private _arrayAccessorTraitGetValueByKey;
     }
 
+    // Protected Properties
+    // =========================================================================
+
     /**
-     * @var array
+     * @var array The raw response payload from users.me.
      */
     protected array $response;
 
+    // Public Methods
+    // =========================================================================
+
     /**
-     * TeamleaderFocusResourceOwner constructor.
-     *
-     * @param array $response
+     * @author CraftPulse
      */
     public function __construct(array $response = [])
     {
@@ -36,95 +49,99 @@ class TeamleaderFocusResourceOwner implements ResourceOwnerInterface
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getId(): array|int|string|null
     {
-        return $this->getValueByKey('id');
+        return $this->_getValueByKey('id');
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getAccount(): array|string|null
     {
-        return $this->getValueByKey('account', []);
+        return $this->_getValueByKey('account', []);
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getFirstName(): array|string|null
     {
-        return $this->getValueByKey('first_name', '');
+        return $this->_getValueByKey('first_name', '');
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getLastName(): array|string|null
     {
-        return $this->getValueByKey('last_name', '');
+        return $this->_getValueByKey('last_name', '');
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getEmail(): array|string|null
     {
-        return $this->getValueByKey('email', '');
+        return $this->_getValueByKey('email', '');
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getLanguage(): array|string|null
     {
-        return $this->getValueByKey('language', '');
+        return $this->_getValueByKey('language', '');
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getTelephones(): array|string|null
     {
-        return $this->getValueByKey('telephones', []);
+        return $this->_getValueByKey('telephones', []);
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getFunction(): array|string|null
     {
-        return $this->getValueByKey('function', '');
+        return $this->_getValueByKey('function', '');
     }
 
     /**
-     * @return array|string|null
+     * @author CraftPulse
      */
     public function getTimezone(): array|string|null
     {
-        return $this->getValueByKey('time_zone', '');
+        return $this->_getValueByKey('time_zone', '');
     }
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function toArray(): array
     {
         return $this->response;
     }
 
+    // Private Methods
+    // =========================================================================
+
     /**
-     * Just the ArrayAccessorTrait's getValueByKey method, but with the first
-     * parameter prefilled.
+     * Wraps ArrayAccessorTrait::getValueByKey with $this->response prefilled.
      *
-     * @param $key
-     * @param mixed $default
-     * @return mixed
+     * @author CraftPulse
      */
-    private function getValueByKey(string $key, mixed $default = null): mixed
+    private function _getValueByKey(string $key, mixed $default = null): mixed
     {
-        return $this->arrayAccessorTraitGetValueByKey(
+        return $this->_arrayAccessorTraitGetValueByKey(
             $this->response,
             $key,
             $default

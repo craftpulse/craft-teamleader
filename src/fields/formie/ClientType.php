@@ -23,20 +23,20 @@ use verbb\formie\positions\Hidden as HiddenPosition;
  * request types. This field controls backend logic in the Teamleader Focus integration
  * to determine whether a company should be created alongside the contact.
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.2.0
+ * @author CraftPulse
+ * @since  5.2.0
  */
 class ClientType extends Field
 {
-    // Constants
+    // Const Properties
     // =========================================================================
 
     public const TYPE_COMPANY = 'company';
     public const TYPE_CONTACT = 'contact';
 
-    // Properties
+    // Public Properties
     // =========================================================================
+
     /**
      * @var array The field options (managed internally, not user-configurable).
      */
@@ -46,36 +46,6 @@ class ClientType extends Field
      * @var bool This field is always required.
      */
     public bool $required = true;
-
-    // Static Methods
-    // =========================================================================
-
-    /**
-     * @inheritdoc
-     */
-    public static function displayName(): string
-    {
-        return Craft::t('formie', 'Client Type');
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function getSvgIconPath(): string
-    {
-        return 'teamleader-focus/integrations/formie/_formfields/icon-mask.svg';
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public static function phpType(): string
-    {
-        return 'string';
-    }
-
-    // Properties
-    // =========================================================================
 
     /**
      * @var mixed The default selected option (company or contact).
@@ -97,11 +67,46 @@ class ClientType extends Field
      */
     public string $contactLabel = 'Client';
 
+    // Static Methods
+    // =========================================================================
+
+    /**
+     * @inheritdoc
+     *
+     * @author CraftPulse
+     */
+    public static function displayName(): string
+    {
+        return Craft::t('formie', 'Client Type');
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @author CraftPulse
+     */
+    public static function getSvgIconPath(): string
+    {
+        return 'teamleader-focus/integrations/formie/_formfields/icon-mask.svg';
+    }
+
+    /**
+     * @inheritdoc
+     *
+     * @author CraftPulse
+     */
+    public static function phpType(): string
+    {
+        return 'string';
+    }
+
     // Public Methods
     // =========================================================================
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getIsRequired(): bool
     {
@@ -110,6 +115,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getFieldTypeDefaults(): array
     {
@@ -120,6 +127,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getFieldOptions(): array
     {
@@ -139,6 +148,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getInputHtml(mixed $value, ?ElementInterface $element = null): string
     {
@@ -152,6 +163,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getPreviewInputHtml(): string
     {
@@ -162,6 +175,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getFrontEndJsModules(): ?array
     {
@@ -173,13 +188,15 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function getFormBuilderSettings(): array
     {
         $settings = parent::getFormBuilderSettings();
         $settings['options'] = $this->getFieldOptions();
 
-        // Always force required to true - this field cannot be optional
+        // This field cannot be optional
         $settings['required'] = true;
 
         return $settings;
@@ -187,6 +204,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function defineGeneralSchema(): array
     {
@@ -216,6 +235,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function defineAppearanceSchema(): array
     {
@@ -238,6 +259,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function defineSettingsSchema(): array
     {
@@ -260,6 +283,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function defineAdvancedSchema(): array
     {
@@ -275,6 +300,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function defineConditionsSchema(): array
     {
@@ -286,6 +313,8 @@ class ClientType extends Field
 
     /**
      * @inheritdoc
+     *
+     * @author CraftPulse
      */
     public function defineHtmlTag(string $key, array $context = []): ?HtmlTag
     {
@@ -360,7 +389,8 @@ class ClientType extends Field
      * Check if the submitted value indicates a B2B (company) request.
      *
      * @param mixed $value The field value
-     * @return bool
+     *
+     * @author CraftPulse
      */
     public function isCompanyRequest(mixed $value): bool
     {
@@ -371,7 +401,8 @@ class ClientType extends Field
      * Check if the submitted value indicates a B2C (contact-only) request.
      *
      * @param mixed $value The field value
-     * @return bool
+     *
+     * @author CraftPulse
      */
     public function isContactRequest(mixed $value): bool
     {

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Teamleader plugin for Craft CMS
+ *
+ * @link      https://craft-pulse.com
+ * @copyright Copyright (c) 2025 CraftPulse
+ */
 
 namespace craftpulse\teamleader\helpers;
 
@@ -8,12 +14,14 @@ namespace craftpulse\teamleader\helpers;
  * Normalizes and validates EU VAT numbers for use with the Teamleader Focus API.
  * The API stores and expects raw alphanumeric format (e.g. "BE0899623035").
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.1.0
+ * @author CraftPulse
+ * @since  5.1.0
  */
 class VatHelper
 {
+    // Const Properties
+    // =========================================================================
+
     /**
      * EU VAT body patterns per country code (after the 2-letter prefix).
      *
@@ -52,6 +60,9 @@ class VatHelper
         'XI' => '/^\d{9}$/',
     ];
 
+    // Public Methods
+    // =========================================================================
+
     /**
      * Normalize a VAT number to the raw alphanumeric format expected by the Teamleader Focus API.
      *
@@ -59,8 +70,10 @@ class VatHelper
      * known EU country patterns. Preserves letters in the body where required
      * (e.g. FR, NL, IE, ES, AT, CY).
      *
-     * @param string $vatNumber Raw user input (e.g. "BE 0899.623.035", "FR XX 999999999")
+     * @param  string       $vatNumber Raw user input (e.g. "BE 0899.623.035", "FR XX 999999999")
      * @return string|false The normalized VAT number (e.g. "BE0899623035") or false if invalid
+     *
+     * @author CraftPulse
      */
     public static function formatVatNumber(string $vatNumber): string|false
     {
