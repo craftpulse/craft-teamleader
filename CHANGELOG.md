@@ -1,5 +1,23 @@
 # Release Notes for Teamleader
 
+## 5.2.2 - unreleased
+### Security
+- Removed public `$companyId`, `$dealId`, and `$userId` properties from the Formie integration class — these held per-submission state and could risk cross-submission data leakage if Formie hydrated an integration from a stored representation. IDs are now scoped to local variables in `sendPayload()` and passed as parameters to `_prepPayload()`. ([#14](https://github.com/craftpulse/craft-teamleader-focus/issues/14))
+
+### Fixed
+- Fixed `sendPayload()` and `fetchFormSettings()` catching only `yii\base\Exception`, letting `\RuntimeException`, GuzzleHttp network errors, and `IdentityProviderException` propagate uncaught. Catches now broaden to `\Exception|\Error` and route through Formie's normal error handling. ([#13](https://github.com/craftpulse/craft-teamleader-focus/issues/13))
+- Fixed `_prepPayload()` unconditionally overwriting the mapped deal title with the static `dealTitle` setting. Mapped form values are now respected; the static setting is the fallback when the mapped value is empty. ([#18](https://github.com/craftpulse/craft-teamleader-focus/issues/18))
+- Fixed `_fetchCustomFields()` crashing when the API response omits the `data` key (e.g. 204 responses, partial errors). ([#20](https://github.com/craftpulse/craft-teamleader-focus/issues/20))
+- Fixed companies error logs encoding `$contactValues` instead of `$companyValues`, making company-related API failures impossible to debug. ([#20](https://github.com/craftpulse/craft-teamleader-focus/issues/20))
+- Fixed `getCurrencyOptions()` making a live API call on every CP page render. Now cached for 24h on success only — API failures fall back to defaults without polluting the cache. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
+
+### Changed
+- Removed `declare(strict_types=1)` from `TeamleaderFocusRefreshTokenGrant` per Craft CMS plugin conventions. ([#12](https://github.com/craftpulse/craft-teamleader-focus/issues/12))
+- Extracted `API_BASE_URL` to a `public const` on the auth client class. Integration class and OAuth provider now reference the single source of truth. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
+- Added `defineRules()` to the Formie integration: `dealTitle` is required when `mapToDeals` is enabled; `defaultCurrency` is validated as a 3-char string. Existing saved integrations with `mapToDeals=true` and an empty `dealTitle` will fail validation on next save in the CP. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
+- Loosened composer PHP constraint from `^8.2.0` to `^8.2`. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
+- Section headers, `@author` annotations, and PSR-12 formatting brought in line with Craft CMS plugin conventions across the codebase. ([#16](https://github.com/craftpulse/craft-teamleader-focus/issues/16), [#17](https://github.com/craftpulse/craft-teamleader-focus/issues/17), [#19](https://github.com/craftpulse/craft-teamleader-focus/issues/19))
+
 ## 5.2.1 - 2026-04-02
 ### Fixed
 - Fixed country field only accepting labels (e.g., "Belgium") — now also accepts ISO codes (e.g., "BE") from prefilled dropdowns, with case-insensitive matching. ([#8](https://github.com/craftpulse/craft-teamleader-focus/issues/8)) - Thanks [@ishetnogferre](https://github.com/ishetnogferre)
