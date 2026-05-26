@@ -72,6 +72,14 @@
                 instructions: "When enabled, submitted tags will be added to the contact's existing tags. When disabled, submitted tags will replace all existing tags."|t('formie'),
                 on: appendContactTags,
             }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Update custom fields partially'|t('formie'),
+                id: 'partialUpdateCustomFieldsContacts',
+                name: 'partialUpdateCustomFieldsContacts',
+                instructions: "When enabled, only the values of specific custom fields of a contact will be updated, leaving the remaining ones unchanged. When disabled, all custom fields will be replaced completely."|t('formie'),
+                on: partialUpdateCustomFieldsContacts,
+            }) }}
         </div>
 
         <hr>
@@ -118,6 +126,14 @@
                 name: 'appendCompanyTags',
                 instructions: "When enabled, submitted tags will be added to the company\'s existing tags. When disabled, submitted tags will replace all existing tags."|t('formie'),
                 on: appendCompanyTags,
+            }) }}
+
+            {{ forms.lightswitchField({
+                label: 'Update custom fields partially'|t('formie'),
+                id: 'partialUpdateCustomFieldsCompanies',
+                name: 'partialUpdateCustomFieldsCompanies',
+                instructions: "When enabled, only the values of specific custom fields of a company will be updated, leaving the remaining ones unchanged. When disabled, all custom fields will be replaced completely."|t('formie'),
+                on: partialUpdateCustomFieldsCompanies,
             }) }}
         </div>
 

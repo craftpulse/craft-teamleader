@@ -70,10 +70,12 @@ The Teamleader Focus plugin provides custom Formie fields to enhance your forms:
 The **Client Type** field allows you to differentiate between B2B (Business-to-Business) and B2C (Business-to-Consumer) submissions. This controls the backend logic for creating records in Teamleader Focus.
 
 **How it works:**
+
 - **Company (B2B)**: Creates a contact, company, and deal. The contact is automatically linked to the company.
 - **Client (B2C)**: Creates only a contact and deal, skipping company creation entirely.
 
 **Field Settings:**
+
 - **Default Value**: Choose whether "Company" or "Client" is selected by default.
 - **Company Label**: Customize the label for the B2B option (default: "Company").
 - **Client Label**: Customize the label for the B2C option (default: "Client").
@@ -106,7 +108,7 @@ When configuring Teamleader integration in a Formie form, you will see the follo
 ### Contact Fields
 
 | Handle                  | Name                         | Type    | Required |
-|:------------------------|------------------------------|---------|----------|
+| :---------------------- | ---------------------------- | ------- | -------- |
 | salutation              | Salutation                   | String  | No       |
 | first_name              | First Name                   | String  | No       |
 | last_name               | Last Name                    | String  | Yes      |
@@ -128,7 +130,7 @@ When configuring Teamleader integration in a Formie form, you will see the follo
 ### Company Fields
 
 | Handle                         | Name                           | Type    | Required |
-|--------------------------------|--------------------------------|---------|----------|
+| ------------------------------ | ------------------------------ | ------- | -------- |
 | company_name                   | Company Name                   | String  | Yes      |
 | email                          | Email address                  | String  | No       |
 | addressLine1                   | Address                        | String  | No       |
@@ -152,7 +154,7 @@ When configuring Teamleader integration in a Formie form, you will see the follo
 ### Deal Fields
 
 | Handle          | Name       | Type   | Required |
-|-----------------|------------|--------|----------|
+| --------------- | ---------- | ------ | -------- |
 | title           | Deal Title | String | Yes      |
 | estimated_value | Deal Value | Float  | No       |
 | currency        | Currency   | String | No       |
@@ -180,7 +182,14 @@ When disabled (default), tags in the form submission will **overwrite** all exis
 ---
 
 ### Custom fields handling
-When updating existing contact or companies, custom fields are **partially updated** via the parameter `custom_fields_update_strategy` which is set to `partial`, per the [docs on updating collections](https://developer.focus.teamleader.eu/docs/general-principles#collections). This behaviour is currently non-configurable in this plugin.
+
+When updating existing contact or companies, custom fields can be configured to:
+
+- **Partially update**: Only the provided value will be updated and the remaining custom fields will be unchanged.
+- **Replace**: The entire collection of custom fields is replaced, missing values are removed from Teamleader
+
+This behaviour is configurable for both **contact** and **company** separately and **enabled** by default.
+More information about this behaviour can be found in the Teamleader API docs: [updating collections](https://developer.focus.teamleader.eu/docs/general-principles#collections).
 
 ---
 
@@ -189,14 +198,18 @@ When updating existing contact or companies, custom fields are **partially updat
 The plugin supports different workflows based on the type of submission:
 
 ### B2B (Business-to-Business)
+
 When the **Client Type** field is set to "Company":
+
 1. A **contact** is created or updated
 2. A **company** is created or updated
 3. The contact is **linked to the company** (if "Link user to company" is enabled)
 4. A **deal** is created and associated with the company
 
 ### B2C (Business-to-Consumer)
+
 When the **Client Type** field is set to "Client":
+
 1. A **contact** is created or updated
 2. Company creation is **skipped entirely**
 3. A **deal** is created and associated with the contact
