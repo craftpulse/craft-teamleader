@@ -20,31 +20,30 @@ use verbb\formie\events\RegisterFieldsEvent;
 use verbb\formie\events\RegisterIntegrationsEvent;
 use verbb\formie\services\Fields;
 use verbb\formie\services\Integrations;
+
 use yii\base\Event;
 
 /**
  * Class Teamleader
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.0.0
- *
+ * @author CraftPulse
+ * @since  5.0.0
  */
-class Teamleader extends Plugin {
-    // Traits
-    // =========================================================================
-
-    // Static Properties
+class Teamleader extends Plugin
+{
+    // Public Properties
     // =========================================================================
 
     /**
      * @var string
      */
     public string $schemaVersion = '1.0.0';
+
     /**
      * @var bool
      */
     public bool $hasCpSection = false;
+
     /**
      * @var bool
      */
@@ -53,16 +52,22 @@ class Teamleader extends Plugin {
     // Public Methods
     // =========================================================================
 
-    public function init(): void {
+    /**
+     * @inheritdoc
+     *
+     * @author CraftPulse
+     */
+    public function init(): void
+    {
         parent::init();
 
         $request = Craft::$app->getRequest();
+
         if ($request->getIsConsoleRequest()) {
             $this->controllerNamespace = 'craftpulse\teamleader\console\controllers';
         }
 
-        // Register our Formie event handlers
-        if(class_exists(Integrations::class)) {
+        if (class_exists(Integrations::class)) {
             $this->_registerFormieEventHandlers();
         }
     }
@@ -70,20 +75,26 @@ class Teamleader extends Plugin {
     // Private Methods
     // =========================================================================
 
-    private function _registerFormieEventHandlers(): void {
+    /**
+     * Register Formie event handlers for the Teamleader Focus CRM integration
+     * and the ClientType custom field.
+     *
+     * @author CraftPulse
+     */
+    private function _registerFormieEventHandlers(): void
+    {
         Event::on(
             Integrations::class,
             Integrations::EVENT_REGISTER_INTEGRATIONS,
-            function (RegisterIntegrationsEvent $event) {
+            function(RegisterIntegrationsEvent $event) {
                 $event->crm[] = TeamleaderFocus::class;
             }
         );
 
-        // Register our custom Formie fields
         Event::on(
             Fields::class,
             Fields::EVENT_REGISTER_FIELDS,
-            function (RegisterFieldsEvent $event) {
+            function(RegisterFieldsEvent $event) {
                 $event->fields[] = ClientType::class;
             }
         );

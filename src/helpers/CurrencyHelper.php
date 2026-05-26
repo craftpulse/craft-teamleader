@@ -11,24 +11,33 @@ namespace craftpulse\teamleader\helpers;
 /**
  * Class CurrencyHelper
  *
- * @author      CraftPulse
- * @package     Teamleader
- * @since       5.2.0
+ * Formats currency options for the Teamleader Focus integration.
+ *
+ * @author CraftPulse
+ * @since  5.2.0
  */
 class CurrencyHelper
 {
+    // Const Properties
+    // =========================================================================
+
     /**
-     * Default fallback currencies if API call fails.
+     * @var array Default fallback currencies if the API call fails.
      */
     private const DEFAULT_CURRENCIES = [
         ['label' => 'EUR - Euro', 'value' => 'EUR'],
     ];
 
+    // Public Methods
+    // =========================================================================
+
     /**
      * Format currency response data into options array.
      *
-     * @param array $data Raw API response data from currencies.exchangeRates
+     * @param  array $data Raw API response data from currencies.exchangeRates
      * @return array Formatted options for select fields
+     *
+     * @author CraftPulse
      */
     public static function formatCurrencyOptions(array $data): array
     {
@@ -47,7 +56,7 @@ class CurrencyHelper
     /**
      * Get the default fallback currencies.
      *
-     * @return array
+     * @author CraftPulse
      */
     public static function getDefaultCurrencies(): array
     {
