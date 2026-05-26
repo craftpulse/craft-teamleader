@@ -4,6 +4,10 @@
 ### Security
 - Removed public `$companyId`, `$dealId`, and `$userId` properties from the Formie integration class — these held per-submission state and could risk cross-submission data leakage if Formie hydrated an integration from a stored representation. IDs are now scoped to local variables in `sendPayload()` and passed as parameters to `_prepPayload()`. ([#14](https://github.com/craftpulse/craft-teamleader-focus/issues/14))
 
+### Added
+- Added "Update custom fields partially" option for Contacts to partially update their custom fields ([#24](https://github.com/craftpulse/craft-teamleader-focus/issues/24)).
+- Added "Update custom fields partially" option for Companies to partially update their custom fields ([#24](https://github.com/craftpulse/craft-teamleader-focus/issues/24))
+
 ### Fixed
 - Fixed `sendPayload()` and `fetchFormSettings()` catching only `yii\base\Exception`, letting `\RuntimeException`, GuzzleHttp network errors, and `IdentityProviderException` propagate uncaught. Catches now broaden to `\Exception|\Error` and route through Formie's normal error handling. ([#13](https://github.com/craftpulse/craft-teamleader-focus/issues/13))
 - Fixed `_prepPayload()` unconditionally overwriting the mapped deal title with the static `dealTitle` setting. Mapped form values are now respected; the static setting is the fallback when the mapped value is empty. ([#18](https://github.com/craftpulse/craft-teamleader-focus/issues/18))
@@ -18,6 +22,8 @@
 - Added `defineRules()` to the Formie integration: `dealTitle` is required when `mapToDeals` is enabled; `defaultCurrency` is validated as a 3-char string. Existing saved integrations with `mapToDeals=true` and an empty `dealTitle` will fail validation on next save in the CP. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
 - Loosened composer PHP constraint from `^8.2.0` to `^8.2`. ([#21](https://github.com/craftpulse/craft-teamleader-focus/issues/21))
 - Section headers, `@author` annotations, and PSR-12 formatting brought in line with Craft CMS plugin conventions across the codebase. ([#16](https://github.com/craftpulse/craft-teamleader-focus/issues/16), [#17](https://github.com/craftpulse/craft-teamleader-focus/issues/17), [#19](https://github.com/craftpulse/craft-teamleader-focus/issues/19))
+- New option "Update custom fields partially" for Contacts and Companies is `enabled` by default. (([#24](https://github.com/craftpulse/craft-teamleader-focus/issues/24)))
+
 
 ## 5.2.1 - 2026-04-02
 ### Fixed
