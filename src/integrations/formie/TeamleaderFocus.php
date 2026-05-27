@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Teamleader plugin for Craft CMS
  *
@@ -59,6 +60,12 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      */
     private const CURRENCY_CACHE_TTL = 86400;
 
+    /**
+     * @var string The update strategy for custom fields.
+     */
+
+    public const CUSTOM_FIELDS_UPDATE_STRATEGY_PARTIAL = 'partial';
+
     // Public Properties
     // =========================================================================
 
@@ -81,6 +88,16 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      * @var bool Whether to map form submissions to Teamleader Focus deals.
      */
     public bool $mapToDeals = false;
+
+    /**
+     * @var bool Whether to update custom fields partially for contacts.
+     */
+    public bool $partialUpdateCustomFieldsContacts = true;
+
+    /**
+     * @var bool Whether to update custom fields partially for companies.
+     */
+    public bool $partialUpdateCustomFieldsCompanies = true;
 
     /**
      * @var string The default currency for deals when not mapped from a form field.
@@ -118,6 +135,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
      *           When enabled, makes an additional API call to fetch existing tags before update.
      */
     public bool $appendCompanyTags = false;
+
 
     // Static Methods
     // =========================================================================
@@ -304,6 +322,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 if (!empty($currentUser['id'])) {
                     $endpoint = 'contacts.update';
                     $contactPayload['id'] = $currentUser['id'];
+                    if ($this->partialUpdateCustomFieldsContacts) {
+                        $contactPayload['custom_fields_update_strategy'] = self::CUSTOM_FIELDS_UPDATE_STRATEGY_PARTIAL;
+                    }
                     $userId = $currentUser['id'];
                 }
 
@@ -375,6 +396,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     if (!empty($currentCompany['id'])) {
                         $endpoint = 'companies.update';
                         $companyPayload['id'] = $currentCompany['id'];
+                        if ($this->partialUpdateCustomFieldsCompanies) {
+                            $companyPayload['custom_fields_update_strategy'] = self::CUSTOM_FIELDS_UPDATE_STRATEGY_PARTIAL;
+                        }
                         $companyId = $currentCompany['id'];
                     }
                 }
@@ -452,7 +476,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     return false;
                 }
             }
-        } catch (Exception|Error $error) {
+        } catch (Exception | Error $error) {
             Integration::apiError($this, $error);
 
             return false;
@@ -639,7 +663,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                     ]),
                 ], $this->_getCustomFields($fields));
             }
-        } catch (Exception|Error $error) {
+        } catch (Exception | Error $error) {
             Integration::apiError($this, $error);
         }
 
