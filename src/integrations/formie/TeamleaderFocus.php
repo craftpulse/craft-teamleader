@@ -61,9 +61,9 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     private const CURRENCY_CACHE_TTL = 86400;
 
     /**
-     * @var string The update strategy for custom fields.
+     * Update strategy value sent to Teamleader to merge custom fields on updates
+     * instead of replacing the full collection.
      */
-
     public const CUSTOM_FIELDS_UPDATE_STRATEGY_PARTIAL = 'partial';
 
     // Public Properties
@@ -454,7 +454,7 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
                 // Get company info with related contacts
                 $response = $this->deliverPayload($submission, 'companies.info', [
                     'id' => $companyId,
-                    'includes' => ['related_contacts'],
+                    'includes' => 'related_contacts',
                 ]);
 
                 // Check related_contacts items for the contact id on id
