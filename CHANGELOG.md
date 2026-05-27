@@ -1,6 +1,6 @@
 # Release Notes for Teamleader
 
-## 5.2.3 - 2026-05-27
+## 5.2.2 - 2026-05-27
 ### Security
 - Removed public `$companyId`, `$dealId`, and `$userId` properties from the Formie integration class — these held per-submission state and could risk cross-submission data leakage if Formie hydrated an integration from a stored representation. IDs are now scoped to local variables in `sendPayload()` and passed as parameters to `_prepPayload()`. ([#14](https://github.com/craftpulse/craft-teamleader-focus/issues/14))
 
