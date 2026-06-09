@@ -174,6 +174,33 @@ class TeamleaderFocus extends Crm implements OAuthProviderInterface
     // =========================================================================
 
     /**
+     * Silently discard the transient per-submission properties (`userId`,
+     * `companyId`, `dealId`) that were removed in 5.2.2 for security reasons (#14).
+     *
+     * Formie persists an integration's public properties as its stored settings
+     * and rehydrates them through {@see \yii\base\BaseObject::__set()}. Settings
+     * saved by <= 5.2.1 still carry these keys, so hydrating them on 5.2.2+ throws
+     * UnknownPropertyException and crashes both the Formie integrations CP page and
+     * any front-end page that loads a form (#31). Dropping the keys here keeps
+     * hydration working without re-introducing the persisted state — the values are
+     * discarded and never written back, so settings self-heal on the next save.
+     *
+     * @param  string $name
+     * @param  mixed  $value
+     *
+     * @author CraftPulse
+     * @since  5.2.3
+     */
+    public function __set($name, $value): void
+    {
+        if (in_array($name, ['userId', 'companyId', 'dealId'], true)) {
+            return;
+        }
+
+        parent::__set($name, $value);
+    }
+
+    /**
      * @author CraftPulse
      */
     public function getIconUrl(): string
