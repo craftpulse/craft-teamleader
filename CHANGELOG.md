@@ -1,6 +1,6 @@
 # Release Notes for Teamleader
 
-## 5.2.3 - unreleased
+## 5.2.3 - 2026-06-09
 ### Fixed
 - Fixed `UnknownPropertyException` when loading a Formie integration saved on 5.2.1 or earlier. The `$companyId`, `$dealId`, and `$userId` properties removed in 5.2.2 are still present in stored integration settings, and Formie threw while rehydrating them — crashing the Formie integrations CP page and any front-end page that loads a form. These legacy keys are now silently discarded on hydration and removed from settings on the next save. ([#31](https://github.com/craftpulse/craft-teamleader-focus/issues/31))
 
