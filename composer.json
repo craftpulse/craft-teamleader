@@ -2,6 +2,7 @@
   "name": "craftpulse/craft-teamleader-focus",
   "description": "Teamleader Focus plugin",
   "type": "craft-plugin",
+  "version": "5.2.3",
   "keywords": [
     "craft",
     "cms",
