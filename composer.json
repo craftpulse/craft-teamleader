@@ -14,7 +14,7 @@
     "lead generation"
   ],
   "support":{
-    "email": "support@craftpulse.com",
+    "email": "support@craft-pulse.com",
     "docs": "https://github.com/craftpulse/craft-teamleader-focus/blob/v5/README.md",
     "issues": "https://github.com/craftpulse/craft-teamleader-focus/issues"
   },
@@ -22,7 +22,7 @@
   "authors": [
     {
       "name": "CraftPulse",
-      "email": "support@craftpulse.com"
+      "email": "support@craft-pulse.com"
     }
   ],
   "minimum-stability": "dev",
@@ -48,7 +48,7 @@
     "name": "Teamleader Focus",
     "handle": "teamleader-focus",
     "developer": "CraftPulse",
-    "developerUrl": "https://craftpulse.com",
+    "developerUrl": "https://craft-pulse.com",
     "documentationUrl": "https://github.com/craftpulse/craft-teamleader-focus/blob/v5/README.md",
     "changelogUrl": "https://github.com/craftpulse/craft-teamleader-focus/blob/v5/CHANGELOG.md",
     "class": "craftpulse\\teamleader\\Teamleader"
