@@ -12,6 +12,8 @@
 {% set dealTitle = form.settings.integrations[handle].dealTitle ?? '' %}
 {% set appendContactTags = form.settings.integrations[handle].appendContactTags ?? false %}
 {% set appendCompanyTags = form.settings.integrations[handle].appendCompanyTags ?? false %}
+{% set partialUpdateCustomFieldsContacts = form.settings.integrations[handle].partialUpdateCustomFieldsContacts ?? true %}
+{% set partialUpdateCustomFieldsCompanies = form.settings.integrations[handle].partialUpdateCustomFieldsCompanies ?? true %}
 {% set defaultCurrency = form.settings.integrations[handle].defaultCurrency ?? 'EUR' %}
 
 <field-select
