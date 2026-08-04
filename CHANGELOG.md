@@ -1,5 +1,10 @@
 # Release Notes for Teamleader
 
+## 5.2.4 - 2026-08-04
+### Fixed
+- Fixed an error that occurred when opening a form's Teamleader integration settings in Formie, because the "Update custom fields partially" lightswitches referenced Twig variables that were never defined.
+- Fixed the support email address and developer URL in the plugin metadata pointing at a domain CraftPulse does not own. Support requests should go to support@craft-pulse.com.
+
 ## 5.2.3 - 2026-06-09
 ### Fixed
 - Fixed `UnknownPropertyException` when loading a Formie integration saved on 5.2.1 or earlier. The `$companyId`, `$dealId`, and `$userId` properties removed in 5.2.2 are still present in stored integration settings, and Formie threw while rehydrating them — crashing the Formie integrations CP page and any front-end page that loads a form. These legacy keys are now silently discarded on hydration and removed from settings on the next save. ([#31](https://github.com/craftpulse/craft-teamleader-focus/issues/31))
